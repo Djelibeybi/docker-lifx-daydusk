@@ -1,7 +1,7 @@
-FROM python:3.7
+FROM python:3.7-slim
 
 RUN set -x && apt-get update \
-  && apt-get install -y curl tzdata locales psmisc procps iputils-ping logrotate cron \
+  && apt-get install -y curl tzdata locales psmisc procps iputils-ping logrotate cron gcc \
   && locale-gen en_US.UTF-8 \
   && curl -SLO "https://github.com/just-containers/s6-overlay/releases/download/v1.21.1.1/s6-overlay-amd64.tar.gz" \
   && tar -xzf s6-overlay-amd64.tar.gz -C / \

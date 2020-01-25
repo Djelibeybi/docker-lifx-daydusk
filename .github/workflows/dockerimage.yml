@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker Image Build and Push
 
 on: [push]
 
@@ -10,5 +10,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag avmiller/docker-lifx-daydusk:$(date +%s)
+    - uses: mr-smithers-excellent/docker-build-push@v2
+      with:
+        image: avmiller/docker-lifx-daydusk
+        tag: latest
+        registry: docker.io
+        dockerfile: Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}

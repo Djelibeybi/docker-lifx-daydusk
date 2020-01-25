@@ -18,7 +18,7 @@ The example below uses the simpler option of just binding to the host network.
 Note that this method _does not work_ if you're using Docker for Mac.
 
 ```
-docker run --name=daydusk --detach --net=host avmiller/docker-lifx-daydusk
+docker run --name=daydusk --detach --net=host djelibeybi/lifx-daydusk
 ```
 
 ## Building the container

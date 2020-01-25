@@ -1,0 +1,39 @@
+#!/bin/bash
+
+case "$1" in
+  wakeup)
+    DURATION=1800
+    KELVIN=4000
+    BRIGHTNESS=0.8
+    ;;
+  day)
+    DURATION=1800
+    KELVIN=3500
+    BRIGHTNESS=0.9
+    ;;
+  evening)
+    DURATION=39600
+    KELVIN=2700
+    BRIGHTNESS=0.8
+    ;;
+  nighttime)
+    DURATION=1800
+    KELVIN=2000
+    BRIGHTNESS=0.01
+    ;;
+esac
+
+# Logging options
+LOGGING="--silent --logging-program daydusk --syslog-address /dev/log"
+
+# Task to perform
+TASK="--task lan:transform"
+
+# Use the provided list of bulbs or target all of them
+if [ -f /config/bulbs.conf ]; then
+  REFERENCE="--reference file:/config/bulbs.conf"
+else
+  REFERENCE=""
+fi
+
+/usr/local/bin/lifx ${LOGGING} ${TASK} ${REFERENCE} -- '{ "hue":0, "saturation": 0, "brightness": ${BRIGHTNESS}, "kelvin": ${KELVIN}, "duration": ${DURATION} }'

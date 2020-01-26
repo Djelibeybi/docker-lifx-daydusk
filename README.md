@@ -82,7 +82,6 @@ The following table documents each parameter and all parameters are required for
 
 The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file matches the default LIFX Day & Dusk times, brightness and kelvin values but does not change the power status of the bulbs either before or after the transition.
 
-
 ### `bulbs.conf` and `<event>-bulbs.conf`
 
 If you provide a `/config/bulbs.conf` file with a list of target MAC addresses (one per line), only those bulbs will be targeted by the configured events.

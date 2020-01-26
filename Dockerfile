@@ -17,7 +17,7 @@ RUN set -x && apt-get update \
   && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* \
   && rm -rf /etc/cron.daily/apt-compat /etc/cron.daily/dpkg /etc/cron.daily/passwd /etc/cron.daily/exim4-base \
   && sed -i "s#/var/log/messages {}.*# #g" /etc/logrotate.conf \
-  && pip install lifx-photons-core
+  && pip install lifx-photons-core python-crontab
 
 COPY rootfs /
 RUN  chmod +x /scripts/daydusk

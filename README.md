@@ -2,7 +2,7 @@
 
 [![GitHub issues](https://img.shields.io/github/issues/djelibeybi/docker-lifx-daydusk?logo=github&style=for-the-badge)](https://github.com/Djelibeybi/docker-lifx-daydusk/issues) [![Travis](https://img.shields.io/travis/djelibeybi/docker-lifx-daydusk?logo=travis&style=for-the-badge)](https://travis-ci.org/Djelibeybi/docker-lifx-daydusk) [![Docker Pulls](https://img.shields.io/docker/pulls/djelibeybi/lifx-daydusk?logo=docker&style=for-the-badge)](https://hub.docker.com/r/djelibeybi/lifx-daydusk)
 
-This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over timing, kelvin value and power status. 
+This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over bulb selection, timing, kelvin value and power status. 
 
 ## Supported Platforms
 
@@ -24,7 +24,7 @@ docker run \
   --net=host \
   -e PUID=<UID> -e PGID=<GID> \
   -e TZ=<Time Zone> |
-  -v /path/to/daydusk.json:/config/daydusk.json \
+  -v /path/to/config/:/config/ \
   djelibeybi/lifx-daydusk
 ```
 
@@ -33,34 +33,26 @@ docker run \
 The parameters are split into two halves, separated by a colon, the left hand side representing the host and the right the container side.
 
 * `--net=host`: Shares host networking with container (**required**)
-* `-e TZ`: for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London`
+* `-e TZ`: for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London` (**required**)
+* `-v /path/to/config/:/config/` - **Required:** see below for details.
 * `-e PGID`: for GroupID - see below for explanation
 * `-e PUID`: for UserID - see below for explanation
-* `-v /path/to/daydusk.json:/config/daydusk.json` - **Required:** see below for details.
 
-#### *Optional Settings:*
+You _must_ set a valid `TZ` value otherwise the container will be set to UTC and your events will fire at the wrong time.
 
-* `-v /path/to/bulbs.conf:/config/bulbs.conf` - if you provide a `/config/bulbs.conf` file, then only the specified bulbs will be controlled. Otherwise, all discovered bulbs will be controlled. The `/config/bulbs.conf` file should list the MAC addresses of the target bulbs, one per line.
+## Config Files
 
+### `daydusk.json`
 
-### User / Group Identifiers
+The sample command above maps the local `/path/to/config` directory to the `/config` directory inside the container. You should change `/path/to/config` to an actual directory on your host system and you must create at least the `daydusk.json` file in this directory. You **must** provide `/config/daydusk.json` file. No default is provided.
 
-Sometimes when using data volumes (`-v` flags) permissions issues can arise between the host OS and the container. We avoid this issue by allowing you to specify the user `PUID` and group `PGID`. Ensure the data volume directory on the host is owned by the same user you specify and it will "just work".
+A [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) is provided which matches the default LIFX Day & Dusk configuration. 
 
-In this instance `PUID=1001` and `PGID=1001`. To find yours use `id user` as below:
+#### Syntax
 
-```
-  $ id <dockeruser>
-    uid=1001(dockeruser) gid=1001(dockergroup) groups=1001(dockergroup)
-```
+The `daydusk.json` file consists of one or more named events that define the time to start the transition, the end state of the bulbs, the duration of the transition and whether the bulbs should turn on automatically before the transition starts or turn off automatically after the transition ends.
 
-## The daydusk.json file
-
-You **must** provide `/config/daydusk.json` file. No default is provided.
-
-### Syntax
-
-The `daydusk.json` file consists of one or more stanzas that define the time to _start_ the transition, the end state of the bulbs, the duration of the transition and whether the bulbs should turn on automatically before the transition starts or turn off automatically after the transition ends.
+In the example below, an event named `wakeup` will fire at **6:30am** to trigger a **30 minute** transition to change the bulbs to **80% brightness** at **4000 kelvin**:
 
 ```
 ...
@@ -74,7 +66,8 @@ The `daydusk.json` file consists of one or more stanzas that define the time to 
   }
 ...  
 ```
-The following table documents each parameter and all parameters are required for each stanza:
+
+The following table documents each parameter and all parameters are required for each event:
 
 | Parameter    | Value | Detail
 | ------------ | :---- | :----- |
@@ -83,11 +76,33 @@ The following table documents each parameter and all parameters are required for
 | `brightness` | `1` to `100` | The target brightness in percent at the end of the transition |
 | `kelvin`     | `1500` to `9000` | The target kelvin value at the end of the transition |
 | `duration`   | `1` to `1440` | How long the transition should run in minutes |
-| `power`      | `[ on | off | ignore ]` | Either the bulbs turn _on_ before the transition starts or turn _off_ when it ends. If you specify ignore, the power state remains unchanged. |
+| `power`      | `[ on | off | ignore ]` | Either the bulbs turn `on` before the transition starts or turn `off` when it ends. Use `ignore` to leave the power state as-is. |
 
 The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file matches the default LIFX Day & Dusk times, brightness and kelvin values but does not change the power status of the bulbs either before or after the transition.
 
+
+### `bulbs.conf` and `<event>-bulbs.conf`
+
+If you provide a `/config/bulbs.conf` file with a list of target MAC addresses (one per line), only those bulbs will be targeted by the configured events.
+
+> **If no bulb files are provided then the events will target all discovered bulbs on the network.**
+
+You can also provide an event-specific list of bulbs using the filename syntax of `<event>-bulbs.conf`. If an event-specific list of bulbs exists, only those bulbs will be targeted. For example, to restrict the bulbs that are targeted by the example `wakeup` event above, create a file named `/config/wakeup-bulbs.conf`.
+
+
+## User / Group Identifiers
+
+Sometimes when using data volumes (`-v` flags) permissions issues can arise between the host OS and the container. We avoid this issue by allowing you to specify the user `PUID` and group `PGID`. Ensure the data volume directory on the host is owned by the same user you specify and it will "just work".
+
+In this instance `PUID=1001` and `PGID=1001`. To find yours use `id user` as below:
+
+```
+  $ id <dockeruser>
+    uid=1001(dockeruser) gid=1001(dockergroup) groups=1001(dockergroup)
+```
+
+
 ## Acknowledgements
 
-* [oznu](https://github.com/oznu) for [`docker-homebridge`](https://github.com/oznu/docker-homebridge) upon which this repo is ~~slightly~~ mostly derived.
+* [oznu](https://github.com/oznu) for [`docker-homebridge`](https://github.com/oznu/docker-homebridge) upon which the multi-arch support for this repo and image is ~~slightly~~ mostly derived.
 * [delfick](https://github.com/delfick) for [`photons-core`](https://github.com/delfick/photons-core) upon which my code depends.

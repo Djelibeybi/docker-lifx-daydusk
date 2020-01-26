@@ -26,13 +26,19 @@ with open('/config/daydusk.json') as json_file:
     
     lifx_command = f'/usr/local/bin/lifx --silent --logging-program lifx --syslog-address /dev/log --task lan:transform'
 
-    # If we have a list of bulbs, use that as the reference
+    # If there a list of bulbs for this event, use that as the reference
     try:
-      f = open('/config/bulbs.conf')
-      reference = '--reference file:/config/bulbs.conf'
+      f = open(f'/config/{event}-bulbs.conf')
+      reference = f'--reference file:/config/{event}-bulbs.conf'
       f.close()
     except FileNotFoundError:
-      reference = ''
+      # Check for a non-event-specific list of bulbs
+      try:
+        f = open('/config/bulbs.conf')
+        reference = '--reference file:/config/bulbs.conf'
+        f.close()
+      except FileNotFoundError:
+        reference = ''
     
     run = lifx_command + ' ' + reference + ' -- ' + transform
 

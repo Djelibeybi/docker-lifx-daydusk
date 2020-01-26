@@ -5,7 +5,7 @@
     "brightness": 80,
     "kelvin": 4000,
     "duration": 30,
-    "power": "ignore"
+    "power": "on"
   },
   "day": {
     "hour": 7,
@@ -13,7 +13,7 @@
     "brightness": 90,
     "kelvin": 3500,
     "duration": 60,
-    "power": "ignore"
+    "power": "on"
   },
   "evening": {
     "hour": 8,
@@ -21,7 +21,7 @@
     "brightness": 80,
     "kelvin": 2700,
     "duration": 600,
-    "power": "ignore"
+    "power": "on"
   },
   "night": {
     "hour": 22,
@@ -29,6 +29,6 @@
     "brightness": 3,
     "kelvin": 2500,
     "duration": 30,
-    "power": "ignore"
+    "power": "on"
   }
 }

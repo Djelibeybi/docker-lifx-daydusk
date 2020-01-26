@@ -2,9 +2,13 @@
 
 This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over timing, kelvin value and power status. 
 
-## Limitations
+## Supported Platforms
 
-The image currently only works on Intel/x86_64 hardware.
+This image is supported on the following platforms:
+ * `amd64`: 64-bit Intel or AMD processors including Intel-based Synology NAS devices. 
+ * `aarch64`: 64-bit Arm processors including Raspberry Pi 3 Model B/B+ and Raspberry Pi 4.
+
+Docker will automatically download the correct image based on the archiecture upon which it is running.
 
 ## Usage
 

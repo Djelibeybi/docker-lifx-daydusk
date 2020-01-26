@@ -13,6 +13,8 @@ with open('/config/daydusk.json') as json_file:
     # Munge the input data from the JSON into the right type
     minute = int(data[event]['minute'])
     hour = int(data[event]['hour'])
+    hue = int(data[event]['hue'])
+    saturation = float(data[event]['saturation']) / 100
     brightness = float(data[event]['brightness']) / 100
     kelvin = int(data[event]['kelvin'])
     duration = int(data[event]['duration']) * 60
@@ -20,9 +22,9 @@ with open('/config/daydusk.json') as json_file:
 
     # Should the bulbs turn on or off
     if (power == 'on') or (power == 'off'):
-      transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration}, "power": "{power}" }}\''
+      transform = f'\'{{"hue": {hue}, "saturation": {saturation}, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration}, "power": "{power}" }}\''
     else:
-      transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration} }}\''
+      transform = f'\'{{"hue": {hue}, "saturation": {saturation}, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration} }}\''
     
     lifx_command = f'/usr/local/bin/lifx --silent --logging-program lifx --syslog-address /dev/log --task lan:transform'
 

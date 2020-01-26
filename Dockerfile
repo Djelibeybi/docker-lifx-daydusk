@@ -4,12 +4,13 @@ FROM ${BASE_IMAGE:-library/python}:3.7-slim
 ARG QEMU_ARCH
 ENV QEMU_ARCH=${QEMU_ARCH:-x86_64} S6_KEEP_ENV=1
 
+COPY qemu/qemu-${QEMU_ARCH}-static /usr/bin/
+
 RUN set -x && apt-get update \
   && apt-get install -y curl tzdata locales psmisc procps iputils-ping logrotate cron gcc \
   && locale-gen en_US.UTF-8 \
   && case "${QEMU_ARCH}" in \
     x86_64) S6_ARCH='amd64';; \
-    arm) S6_ARCH='armhf';; \
     aarch64) S6_ARCH='aarch64';; \
     *) echo "unsupported architecture"; exit 1 ;; \
   esac \

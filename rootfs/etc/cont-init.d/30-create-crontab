@@ -20,7 +20,7 @@ with open('/config/daydusk.json') as json_file:
 
     # Should the bulbs turn on or off
     if (power == 'on') or (power == 'off'):
-      transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration}, "power": {power} }}\''
+      transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration}, "power": "{power}" }}\''
     else:
       transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration} }}\''
     

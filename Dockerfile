@@ -31,6 +31,5 @@ RUN set -x && apt-get update \
   && pip install lifx-photons-core python-crontab
 
 COPY rootfs /
-RUN  chmod +x /scripts/daydusk
 
 ENTRYPOINT ["/init"]

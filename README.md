@@ -81,3 +81,7 @@ The following table documents each parameter and all parameters are required for
 
 The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file matches the default LIFX Day & Dusk times, brightness and kelvin values but does not change the power status of the bulbs either before or after the transition.
 
+## Acknowledgements
+
+* [oznu](https://github.com/oznu) for [`docker-homebridge`](https://github.com/oznu/docker-homebridge) upon which this repo is ~~slightly~~ mostly derived.
+* [delfick](https://github.com/delfick) for [`photons-core`](https://github.com/delfick/photons-core) upon which my code depends.

@@ -1,0 +1,34 @@
+{
+  "wakeup": {
+    "hour": 6,
+    "minute": 30,
+    "brightness": 80,
+    "kelvin": 4000,
+    "duration": 30,
+    "power": "ignore"
+  },
+  "day": {
+    "hour": 7,
+    "minute": 0,
+    "brightness": 90,
+    "kelvin": 3500,
+    "duration": 60,
+    "power": "ignore"
+  },
+  "evening": {
+    "hour": 8,
+    "minute": 0,
+    "brightness": 80,
+    "kelvin": 2700,
+    "duration": 600,
+    "power": "ignore"
+  },
+  "night": {
+    "hour": 22,
+    "minute": 30,
+    "brightness": 3,
+    "kelvin": 2500,
+    "duration": 30,
+    "power": "ignore"
+  }
+}

@@ -1,7 +1,0 @@
-SHELL=/bin/bash
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-
-30 6 * * * root /scripts/daydusk wakeup
-0 7 * * * root /scripts/daydusk day
-0 8 * * * root /scripts/daydusk evening
-30 22 * * * root /scripts/daydusk nighttime

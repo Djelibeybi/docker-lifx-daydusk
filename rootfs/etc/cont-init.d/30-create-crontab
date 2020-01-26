@@ -1,0 +1,49 @@
+#!/usr/bin/with-contenv /usr/local/bin/python
+# Copyright (c) 2020 Avi Miller.
+
+import os, json
+from crontab import CronTab
+
+cron = CronTab(user=False)
+
+with open('/config/daydusk.json') as json_file:
+  data = json.load(json_file)
+  for event in data:
+
+    # Munge the input data from the JSON into the right type
+    minute = int(data[event]['minute'])
+    hour = int(data[event]['hour'])
+    brightness = float(data[event]['brightness']) / 100
+    kelvin = int(data[event]['kelvin'])
+    duration = int(data[event]['duration']) * 60
+    power = data[event]['power']
+
+    # Should the bulbs turn on or off
+    if (power == 'on') or (power == 'off'):
+      transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration}, "power": {power} }}\''
+    else:
+      transform = f'\'{{"hue": 0, "saturation": 0, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration} }}\''
+    
+    lifx_command = f'/usr/local/bin/lifx --silent --logging-program lifx --syslog-address /dev/log --task lan:transform'
+
+    # If we have a list of bulbs, use that as the reference
+    try:
+      f = open('/config/bulbs.conf')
+      reference = '--reference file:/config/bulbs.conf'
+      f.close()
+    except FileNotFoundError:
+      reference = ''
+    
+    run = lifx_command + ' ' + reference + ' -- ' + transform
+
+    job = cron.new(command=run, user='root')
+    job.minute.on(minute)
+    job.hour.on(hour)
+
+try:
+  os.remove('/etc/cron.d/daydusk')
+  print('Removed old cron file.')
+except FileNotFoundError:
+  print('No old cron file found.')
+
+cron.write( '/etc/cron.d/daydusk' )

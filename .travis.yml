@@ -25,6 +25,7 @@ script:
 
 jobs:
   include:
+    if: type = push
     - stage: manifest
       script:
         # Enable experimental features to use docker manifest command

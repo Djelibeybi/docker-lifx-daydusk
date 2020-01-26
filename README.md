@@ -2,6 +2,10 @@
 
 This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over timing, kelvin value and power status. 
 
+## Limitations
+
+The image currently only works on Intel/x86_64 hardware.
+
 ## Usage
 
 LIFX discovery requires UDP broadcast access to your local network in order to successfully discover bulbs. This can be achieved using the ```--net=host``` flag. Currently this image will not work when using [Docker for Mac](https://github.com/docker/for-mac/issues/68) or [Docker for Windows](https://github.com/docker/for-win/issues/543).

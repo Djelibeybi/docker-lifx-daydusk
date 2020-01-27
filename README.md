@@ -54,11 +54,15 @@ A [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob
 
 The `daydusk.json` file consists of one or more named events that define the time to start the transition, the end state of the bulbs, the duration of the transition and whether the bulbs should turn on automatically before the transition starts or turn off automatically after the transition ends.
 
-In the example below, an event named `wakeup` will fire at **6:30am** to trigger a **30 minute** transition to change the bulbs to **80% brightness** at **4000 kelvin**:
+In the example below, an event named `wakeup` will fire at **6:30am** on Saturday and Sunday to trigger a **30 minute** transition to power on the bulbs and transition to **80% brightness** at **4000 kelvin**:
 
-```
-...
+```json
+{
   "wakeup": {
+    "days": [
+      "sat",
+      "sun"
+    ],
     "hour": 6,
     "minute": 30,
     "hue": 0,
@@ -66,25 +70,26 @@ In the example below, an event named `wakeup` will fire at **6:30am** to trigger
     "brightness": 80,
     "kelvin": 4000,
     "duration": 30,
-    "power": "ignore"
+    "power": "on"
   }
-...  
+}
 ```
 
 The following table documents each parameter and all parameters are required for each event:
 
-| Parameter    | Value            | Detail |
-| ------------ | :--------------- | :----- |
-| `hour`       | `0` to `23`      | The hour at which the transition starts |
-| `minute`     | `0` to `59`      | The minute after the hour at which the transition starts |
-| `hue`        | `0` to `360`     | The target hue in degrees at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
-| `saturation` | `0` to `100`     | The target saturation in percent at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
-| `brightness` | `1` to `100`     | The target brightness in percent at the end of the transition |
-| `kelvin`     | `1500` to `9000` | The target kelvin value at the end of the transition.<br>**Ignored unless both `hue` and `saturation` are set to `0`** |
-| `duration`   | `1` to `1440`    | How long the transition should run in minutes |
-| `power`      | <code>[ on &#124; off &#124; ignore ]</code> | Either the bulbs turn `on` before the transition starts or turn `off` when it ends.<br>Use `ignore` to leave the power state unchanged. |
+| Parameter    | Required? | Value            | Detail |
+| ------------ | :-------- | :--------------- | :----- |
+| `days`       | No        | `["mon","tue"]` | An JSON array of days on which this event should trigger |
+| `hour`       | **Yes**   | `0` to `23`     | The hour at which the transition starts |
+| `minute`     | **Yes**   |`0` to `59`      | The minute after the hour at which the transition starts |
+| `hue`        | No        |`0` to `360`     | The target hue in degrees at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
+| `saturation` | No        |`0` to `100`     | The target saturation in percent at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
+| `brightness` | **Yes**   |`1` to `100`     | The target brightness in percent at the end of the transition |
+| `kelvin`     | **Yes**   |`1500` to `9000` | The target kelvin value at the end of the transition.<br>**Ignored unless both `hue` and `saturation` are set to `0`** |
+| `duration`   | **Yes**   |`1` to `1440`    | How long the transition should run in minutes |
+| `power`      | No        | <code>[on&#124;off]</code> | Either the bulbs turn `on` before the transition starts or turn `off` when it ends. If not provided the power state remains unchanged. |
 
-The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file matches the default LIFX Day & Dusk times, brightness and kelvin values but does not change the power status of the bulbs either before or after the transition.
+The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes. 
 
 ### `bulbs.conf` and `<event>-bulbs.conf`
 

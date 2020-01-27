@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Develop branch
+
+### Added
+ - Hue and saturation can be set for each event along with brightness and kelvin.<br>Note that if hue and/or saturation are set to anything except `0`, the kelvin value is ignored.
+ - Events can be limited to specific days or will run on every day (default) 
+
 ## 1.1.0
 
 ### Added

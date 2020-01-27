@@ -1,32 +1,49 @@
 #!/usr/bin/with-contenv /usr/local/bin/python
 # Copyright (c) 2020 Avi Miller.
 
-import os, json
-from crontab import CronTab
-
 cron = CronTab(user=False)
+command = '/usr/local/bin/lifx --silent --logging-program lifx --syslog-address /dev/log --task lan:transform'
+
+def get_value(variable, default = False):
+  try:
+    value = data[event][variable]
+    return value
+  except:
+    return default
 
 with open('/config/daydusk.json') as json_file:
   data = json.load(json_file)
   for event in data:
 
-    # Munge the input data from the JSON into the right type
-    minute = int(data[event]['minute'])
-    hour = int(data[event]['hour'])
-    hue = int(data[event]['hue'])
-    saturation = float(data[event]['saturation']) / 100
-    brightness = float(data[event]['brightness']) / 100
-    kelvin = int(data[event]['kelvin'])
-    duration = int(data[event]['duration']) * 60
-    power = data[event]['power']
-
-    # Should the bulbs turn on or off
-    if (power == 'on') or (power == 'off'):
-      transform = f'\'{{"hue": {hue}, "saturation": {saturation}, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration}, "power": "{power}" }}\''
-    else:
-      transform = f'\'{{"hue": {hue}, "saturation": {saturation}, "brightness": {brightness}, "kelvin": {kelvin}, "duration": {duration} }}\''
+    # If days is set for this event use it, otherwise set dow to all    
+    days = get_value('days', ["mon","tue","wed","thu","fri","sat","sun"])
+    dow = []
+    for day in days:
+      dow.append(day)
+    hour = get_value('hour')
+    minute = get_value('minute')
     
-    lifx_command = f'/usr/local/bin/lifx --silent --logging-program lifx --syslog-address /dev/log --task lan:transform'
+    # Get HSBK values
+    hue = get_value('hue', 0)
+    saturation = get_value('saturation', 0)
+    brightness = get_value('brightness')
+    kelvin = get_value('kelvin')
+
+    # Get duration and power values
+    duration = get_value('duration')
+    power_state = get_value('power')
+
+    # If the required settings are not provided, ignore this event
+    if (hour == False) or (minute == False) or (brightness == False) or (kelvin == False) or (duration == False):
+      pass
+
+    # Check hue is within valid range
+    if (hue < 0) or (hue > 360):
+      pass
+
+    # Check kelvin is within valid range
+    if (kelvin < 1500) or (kelvin > 9000):
+      pass
 
     # If there a list of bulbs for this event, use that as the reference
     try:
@@ -41,10 +58,15 @@ with open('/config/daydusk.json') as json_file:
         f.close()
       except FileNotFoundError:
         reference = ''
-    
-    run = lifx_command + ' ' + reference + ' -- ' + transform
 
-    job = cron.new(command=run, user='root')
+    # Build the transform json
+    hsbk = f'"hue": {hue}, "saturation": {saturation/100}, "brightness": {brightness/100}, "kelvin": {kelvin},'
+    power = '' if (power_state == False) else f'"power": "{power_state}", '
+    duration = f'"duration": {duration*60}'
+    transform = f'\'{{ {hsbk} {power} {duration} }}\''
+
+    job = cron.new(command=f'{command} {reference} -- {transform}', user='root')
+    job.dow.on(*dow)
     job.minute.on(minute)
     job.hour.on(hour)
 

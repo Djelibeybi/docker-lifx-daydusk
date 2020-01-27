@@ -76,7 +76,7 @@ The following table documents each parameter and all parameters are required for
 | `brightness` | `1` to `100` | The target brightness in percent at the end of the transition |
 | `kelvin`     | `1500` to `9000` | The target kelvin value at the end of the transition |
 | `duration`   | `1` to `1440` | How long the transition should run in minutes |
-| `power`      | `[ on | off | ignore ]` | Either the bulbs turn `on` before the transition starts or turn `off` when it ends. Use `ignore` to leave the power state as-is. |
+| `power`      | <code>[ on &#124; off &#124; ignore ]</code> | Either the bulbs turn `on` before the transition starts or turn `off` when it ends.<br>Use `ignore` to leave the power state unchanged. |
 
 The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file matches the default LIFX Day & Dusk times, brightness and kelvin values but does not change the power status of the bulbs either before or after the transition.
 

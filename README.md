@@ -106,6 +106,9 @@ In this instance `PUID=1001` and `PGID=1001`. To find yours use `id user` as bel
     uid=1001(dockeruser) gid=1001(dockergroup) groups=1001(dockergroup)
 ```
 
+## Contributing
+
+This project adheres to the [Contributor Covenant code of conduct](.github/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code and to follow the [contribution guidelines](.github/CONTRIBUTING.md).
 
 ## Acknowledgements
 

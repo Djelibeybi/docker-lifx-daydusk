@@ -1,79 +1,20 @@
-#!/usr/bin/with-contenv /usr/local/bin/python
-# Copyright (c) 2020 Avi Miller.
+#!/usr/bin/with-contenv sh
 
-cron = CronTab(user=False)
-command = '/usr/local/bin/lifx --silent --logging-program lifx --syslog-address /dev/log --task lan:transform'
+CONFIG=${CONFIG:-/config/daydusk.yml}
 
-def get_value(variable, default = False):
-  try:
-    value = data[event][variable]
-    return value
-  except:
-    return default
+echo "
+-------------------------------------
+DAY/DUSK CONFIG: ${CONFIG}
+-------------------------------------
+"
 
-with open('/config/daydusk.json') as json_file:
-  data = json.load(json_file)
-  for event in data:
-
-    # If days is set for this event use it, otherwise set dow to all    
-    days = get_value('days', ["mon","tue","wed","thu","fri","sat","sun"])
-    dow = []
-    for day in days:
-      dow.append(day)
-    hour = get_value('hour')
-    minute = get_value('minute')
-    
-    # Get HSBK values
-    hue = get_value('hue', 0)
-    saturation = get_value('saturation', 0)
-    brightness = get_value('brightness')
-    kelvin = get_value('kelvin')
-
-    # Get duration and power values
-    duration = get_value('duration')
-    power_state = get_value('power')
-
-    # If the required settings are not provided, ignore this event
-    if (hour == False) or (minute == False) or (brightness == False) or (kelvin == False) or (duration == False):
-      pass
-
-    # Check hue is within valid range
-    if (hue < 0) or (hue > 360):
-      pass
-
-    # Check kelvin is within valid range
-    if (kelvin < 1500) or (kelvin > 9000):
-      pass
-
-    # If there a list of bulbs for this event, use that as the reference
-    try:
-      f = open(f'/config/{event}-bulbs.conf')
-      reference = f'--reference file:/config/{event}-bulbs.conf'
-      f.close()
-    except FileNotFoundError:
-      # Check for a non-event-specific list of bulbs
-      try:
-        f = open('/config/bulbs.conf')
-        reference = '--reference file:/config/bulbs.conf'
-        f.close()
-      except FileNotFoundError:
-        reference = ''
-
-    # Build the transform json
-    hsbk = f'"hue": {hue}, "saturation": {saturation/100}, "brightness": {brightness/100}, "kelvin": {kelvin},'
-    power = '' if (power_state == False) else f'"power": "{power_state}", '
-    duration = f'"duration": {duration*60}'
-    transform = f'\'{{ {hsbk} {power} {duration} }}\''
-
-    job = cron.new(command=f'{command} {reference} -- {transform}', user='root')
-    job.dow.on(*dow)
-    job.minute.on(minute)
-    job.hour.on(hour)
-
-try:
-  os.remove('/etc/cron.d/daydusk')
-  print('Removed old cron file.')
-except FileNotFoundError:
-  print('No old cron file found.')
-
-cron.write( '/etc/cron.d/daydusk' )
+if [ -f ${CONFIG} ]; then
+  LIFX_CONFIG=${CONFIG} /usr/local/bin/python /scripts/generate-crontab.py 2>/dev/null
+else
+  echo "
+-------------------------------------------
+CONFIG FILE NOT FOUND! NO EVENTS SCHEDULED!
+-------------------------------------------
+"
+   exit 1
+fi

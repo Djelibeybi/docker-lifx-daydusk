@@ -24,15 +24,16 @@ docker run \
   --detach \
   --name=daydusk \
   --net=host \
-  -e PUID=<UID> -e PGID=<GID> \
-  -e TZ=<Time Zone> |
+  -e PUID=<UID> \
+  -e PGID=<GID> \
+  -e TZ=<Time Zone> \
   -v /path/to/config/:/config/ \
   djelibeybi/lifx-daydusk
 ```
 
 ### Parameters
 
-The parameters are split into two halves, separated by a colon, the left hand side representing the host and the right the container side.
+The following parameters can be specified on the command-line when executing `docker run` to start the container:
 
 * `--net=host`: Shares host networking with container (**required**)
 * `-e TZ`: for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London` (**required**)
@@ -40,15 +41,15 @@ The parameters are split into two halves, separated by a colon, the left hand si
 * `-e PGID`: for GroupID - see below for explanation
 * `-e PUID`: for UserID - see below for explanation
 
-You _must_ set a valid `TZ` value otherwise the container will be set to UTC and your events will fire at the wrong time.
+You **must** set a valid `TZ` value otherwise the container will be set to UTC and your events will fire at the wrong time.
 
 ## Config Files
 
-### `daydusk.json`
+### `daydusk.yml`
 
-The sample command above maps the local `/path/to/config` directory to the `/config` directory inside the container. You should change `/path/to/config` to an actual directory on your host system and you must create at least the `daydusk.json` file in this directory. You **must** provide `/config/daydusk.json` file. No default is provided.
+The sample command above maps the local `/path/to/config` directory to the `/config` directory inside the container. You should change `/path/to/config` to an actual directory on your host system and you must create at least the `daydusk.yml` file in this directory. You **must** provide `/config/daydusk.yml` file. 
 
-A [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) is provided which matches the default LIFX Day & Dusk configuration. 
+A [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) is provided which matches the default LIFX Day & Dusk configuration. 
 
 #### Syntax
 
@@ -56,49 +57,68 @@ The `daydusk.json` file consists of one or more named events that define the tim
 
 In the example below, an event named `wakeup` will fire at **6:30am** on Saturday and Sunday to trigger a **30 minute** transition to power on the bulbs and transition to **80% brightness** at **4000 kelvin**:
 
-```json
-{
-  "wakeup": {
-    "days": [
-      "sat",
-      "sun"
-    ],
-    "hour": 6,
-    "minute": 30,
-    "hue": 0,
-    "saturation": 0,
-    "brightness": 80,
-    "kelvin": 4000,
-    "duration": 30,
-    "power": "on"
-  }
-}
+```yaml
+    wakeup:
+      days:
+        - SATURDAY
+        - SUNDAY
+      hour: 6
+      minute: 30
+      brightness: 0.8
+      kelvin: 4000
+      duration: 1800
+      power: ON
 ```
 
 The following table documents each parameter and all parameters are required for each event:
 
 | Parameter    | Required? | Value            | Detail |
 | ------------ | :-------- | :--------------- | :----- |
-| `days`       | No        | `["mon","tue"]` | An JSON array of days on which this event should trigger |
+| `days`       | No        | List of either `MONDAY` to `SUNDAY` or `0` to `6` | An list of days on which this event should occur. If not specified, the event will occur daily.<br>If specified numerically, `0` is Sunday and `6` is Saturday. |
 | `hour`       | **Yes**   | `0` to `23`     | The hour at which the transition starts |
 | `minute`     | **Yes**   |`0` to `59`      | The minute after the hour at which the transition starts |
 | `hue`        | No        |`0` to `360`     | The target hue in degrees at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
-| `saturation` | No        |`0` to `100`     | The target saturation in percent at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
-| `brightness` | **Yes**   |`1` to `100`     | The target brightness in percent at the end of the transition |
+| `saturation` | No        |`0` to `1`       | The target saturation as a float, e.g. for 80% specify `0.8`.<br>**Must be set to `0` for temperature adjustment** |
+| `brightness` | **Yes**   |`1` to `1`       | The target brightness as a float, e.g. for 80% specify `0.8` |
 | `kelvin`     | **Yes**   |`1500` to `9000` | The target kelvin value at the end of the transition.<br>**Ignored unless both `hue` and `saturation` are set to `0`** |
-| `duration`   | **Yes**   |`1` to `1440`    | How long the transition should run in minutes |
-| `power`      | No        | <code>[on&#124;off]</code> | Either the bulbs turn `on` before the transition starts or turn `off` when it ends. If not provided the power state remains unchanged. |
+| `duration`   | **Yes**   |`1` to `86400`   | How long the transition should run in seconds.<br>Sixty minutes is `3600` seconds. |
+| `power`      | No        | <code>[on&#124;off]</code> | Used to turn the bulbs `on` at the start of the event or `off` when the event ends. If not provided the power state remains unchanged. |
+| `reference`  | No        | See below       | Used to specify the bulbs to target for the event | 
 
-The [`sample-daydusk.json`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/master/sample-daydusk.json) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes. 
+The [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes. 
 
-### `bulbs.conf` and `<event>-bulbs.conf`
+#### Specifying bulbs for each event
 
-If you provide a `/config/bulbs.conf` file with a list of target MAC addresses (one per line), only those bulbs will be targeted by the configured events.
+The `reference` field is used to determine which bulbs will be targeted for each event. If an event does not contain a reference field, all discovered bulbs will be used. The reference field can be specified in any of the following formats on a per-event basis, i.e. you can chose to use one method for an event and a different method for another.
 
-> **If no bulb files are provided then the events will target all discovered bulbs on the network.**
+> **Currently, no validation is performed to ensure the serial numbers are valid or if any specified files exist.** <br>
+> Likewise, no validation of the provided filters is performed, so it's possible for a filter to return no results or unexpected results if misconfigured.
 
-You can also provide an event-specific list of bulbs using the filename syntax of `<event>-bulbs.conf`. If an event-specific list of bulbs exists, only those bulbs will be targeted. For example, to restrict the bulbs that are targeted by the example `wakeup` event above, create a file named `/config/wakeup-bulbs.conf`.
+The available formats are:
+  
+**A single serial number:**
+```yaml
+reference: d073d5000001
+```
 
+**A list of serial numbers:**
+```yaml
+reference: 
+  - d073d5000001
+  - d073d5000002
+```
+  
+**A file that contains a list of serial numbers (one per line):**
+```yaml
+reference: file:/config/bulbs.conf
+```
+
+**A filter than is dynamically evaluated on each run based on bulb-specific data:**
+```yaml
+reference: match:group_name=bedroom
+```
+
+The Photons Core documentation maintains a list [valid filters](https://delfick.github.io/photons-core/modules/photons_device_finder.html#finder-filters) that can be used with this option. Multiple filters can be combined using an ampersand, e.g. `match:group_name=bedroom&power=on` would match all bulbs in the group named `bedroom` that are currently powered on.
 
 ## User / Group Identifiers
 
@@ -118,4 +138,4 @@ This project adheres to the [Contributor Covenant code of conduct](.github/CODE_
 ## Acknowledgements
 
 * [oznu](https://github.com/oznu) for [`docker-homebridge`](https://github.com/oznu/docker-homebridge) upon which the multi-arch support for this repo and image is ~~slightly~~ mostly derived.
-* [delfick](https://github.com/delfick) for [`photons-core`](https://github.com/delfick/photons-core) upon which my code depends.
+* [delfick](https://github.com/delfick) for [`photons-core`](https://github.com/delfick/photons-core) upon which my code depends and for providing additional pointers on using Photons for configuration validation.

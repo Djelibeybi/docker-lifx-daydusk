@@ -70,6 +70,28 @@ In the example below, an event named `wakeup` will fire at **6:30am** on Saturda
       power: ON
 ```
 
+Multiple events can be included within the file, using the following syntax:
+
+```yaml
+daydusk:
+  schedules:
+     wakeup:
+     ...
+
+     day:
+     ...
+
+     evening:
+     ...
+
+     nighttime:
+     ...
+```
+
+Note the opening `daydusk:` and `schedules:` only appear once at the beginning of the file. You can validate your YAML syntax online at [http://www.yamllint.com/](http://www.yamllint.com/).
+
+There is no limit to the number of events, though each event will add additional time to process when the container starts. To change the events, simply _stop_ the running container, modify the `daydusk.yml` file and _start_ the container again.
+
 The following table documents each parameter and all parameters are required for each event:
 
 | Parameter    | Required? | Value            | Detail |

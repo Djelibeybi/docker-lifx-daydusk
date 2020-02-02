@@ -1,0 +1,3 @@
+-
++^cron\.*
+/var/log/socklog/cron

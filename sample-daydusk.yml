@@ -1,0 +1,37 @@
+---
+daydusk:
+
+  schedules:
+    wakeup:
+      hour: 6
+      minute: 30
+      brightness: 0.8
+      kelvin: 4000
+      duration: 1800
+      power: ON
+      
+    day:
+      hour: 7
+      minute: 0
+      hue: 120
+      saturation: 1
+      brightness: 0.9
+      kelvin: 3500
+      duration: 3600
+      power: ON
+
+    evening:
+      hour: 8
+      minute: 0
+      brightness: 0.8
+      kelvin: 2700
+      duration: 36000
+      power: ON
+
+    nighttime:
+      hour: 22
+      minute: 30
+      brightness: 0.03
+      kelvin: 2000
+      duration: 1800
+      power: ON

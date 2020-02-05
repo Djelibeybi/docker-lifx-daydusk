@@ -1,6 +1,6 @@
 # LIFX Day and Dusk in a Docker Container
 
-[![develop branch](https://img.shields.io/travis/djelibeybi/docker-lifx-daydusk/develop?label=develop&logo=travis&style=for-the-badge)](https://travis-ci.org/Djelibeybi/docker-lifx-daydusk) [![master branch](https://img.shields.io/travis/djelibeybi/docker-lifx-daydusk/master?label=master&logo=travis&style=for-the-badge)](https://travis-ci.org/Djelibeybi/docker-lifx-daydusk) [![GitHub issues](https://img.shields.io/github/issues/djelibeybi/docker-lifx-daydusk?logo=github&style=for-the-badge)](https://github.com/Djelibeybi/docker-lifx-daydusk/issues) [![Docker Pulls](https://img.shields.io/docker/pulls/djelibeybi/lifx-daydusk?logo=docker&style=for-the-badge)](https://hub.docker.com/r/djelibeybi/lifx-daydusk)
+[![master branch](https://img.shields.io/travis/djelibeybi/docker-lifx-daydusk/master?label=master&logo=travis&style=for-the-badge)](https://travis-ci.org/Djelibeybi/docker-lifx-daydusk) [![GitHub issues](https://img.shields.io/github/issues/djelibeybi/docker-lifx-daydusk?logo=github&style=for-the-badge)](https://github.com/Djelibeybi/docker-lifx-daydusk/issues) [![Docker Pulls](https://img.shields.io/docker/pulls/djelibeybi/lifx-daydusk?logo=docker&style=for-the-badge)](https://hub.docker.com/r/djelibeybi/lifx-daydusk)
 
 
 This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over bulb selection, timing, kelvin value and power status. 

@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file. The format 
 
 ## 2.1.0
 
+### Added in v2.1.0
+
 - Added the ability to set `transform_options` for each schedule.
+
+### Changed in v2.1.0
+
+- Minor formatting changes to various Markdown files to fix linting issues.
 
 ## 2.0.0
 

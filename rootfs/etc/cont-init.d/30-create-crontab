@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv sh
+# shellcheck shell=bash
 
 CONFIG=${CONFIG:-/config/daydusk.yml}
 
@@ -8,7 +9,7 @@ DAY/DUSK CONFIG: ${CONFIG}
 -------------------------------------
 "
 
-if [ -f ${CONFIG} ]; then
+if [ -f "${CONFIG}" ]; then
   LIFX_CONFIG=${CONFIG} /usr/local/bin/python /scripts/generate-crontab.py 2>/dev/null
 else
   echo "

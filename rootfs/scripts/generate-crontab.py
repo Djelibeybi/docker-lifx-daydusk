@@ -115,13 +115,13 @@ class NoSchedules(PhotonsAppError):
               kelvin: 3500
               duration: 60
               power: ON
+              transform_options:
+                - transition_color: True
     """
     ).rstrip()
 
-
 class NoLIFXScript(PhotonsAppError):
     desc = "I couldn't find the lifx script"
-
 
 class Days(enum.Enum):
     SUNDAY = 0
@@ -131,7 +131,6 @@ class Days(enum.Enum):
     THURSDAY = 4
     FRIDAY = 5
     SATURDAY = 6
-
 
 class range_spec(sb.Spec):
     def setup(self, spec, minimum, maximum):
@@ -151,7 +150,6 @@ class range_spec(sb.Spec):
             )
         return val
 
-
 class power_spec(sb.Spec):
     def normalise_filled(self, meta, val):
         if val in ("on", "ON", True, 1):
@@ -161,14 +159,12 @@ class power_spec(sb.Spec):
 
         raise BadSpecValue("Power must be on/off, True/False or 0/1", wanted=val, meta=meta)
 
-
 class reference_spec(sb.Spec):
     def normalise_empty(self, meta):
         return ""
 
     def normalise_filled(self, meta, val):
         return ",".join(sb.listof(sb.string_spec()).normalise(meta, val))
-
 
 class Schedule(dictobj.Spec):
     days = dictobj.NullableField(sb.listof(enum_spec(None, Days, unpacking=True)))
@@ -182,6 +178,7 @@ class Schedule(dictobj.Spec):
 
     duration = dictobj.NullableField(sb.float_spec)
     power = dictobj.NullableField(power_spec)
+    transform_options = dictobj.NullableField(sb.dictof(sb.string_spec(), sb.boolean()))
 
     reference = dictobj.Field(reference_spec)
 
@@ -199,19 +196,16 @@ class Schedule(dictobj.Spec):
 
         return [day.value for day in days]
 
-
 class DayDusk(dictobj.Spec):
     schedules = dictobj.Field(
         sb.dictof(sb.string_spec(), Schedule.FieldSpec(formatter=MergedOptionStringFormatter))
     )
-
 
 @addon_hook(extras=[("lifx.photons", "control"), ("lifx.photons", "device_finder")])
 def __lifx__(collector, *args, **kwargs):
     collector.register_converters(
         {"daydusk": DayDusk.FieldSpec(formatter=MergedOptionStringFormatter)}
     )
-
 
 @an_action()
 async def make_crontab(collector, **kwargs):
@@ -220,7 +214,7 @@ async def make_crontab(collector, **kwargs):
 
     Usage is::
         
-        ./make_crontab
+        ./generate-crontab.py
     """
     extra_script_args = ["--silent", "--logging-program", "lifx", "--syslog-address", "/dev/log"]
     daydusk = collector.configuration["daydusk"]
@@ -253,7 +247,6 @@ async def make_crontab(collector, **kwargs):
 
     cron.write(cronfile)
     print(f"Created crontab at {cronfile}")
-
 
 if __name__ == "__main__":
     from photons_app.executor import main

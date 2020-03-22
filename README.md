@@ -74,6 +74,8 @@ daydusk:
       kelvin: 4000
       duration: 1800
       power: ON
+      transform_options:
+        transition_color: True
 ```
 
 Multiple events can be included within the file, using the following syntax:
@@ -111,9 +113,17 @@ The following table documents each parameter and all parameters are required for
 | `kelvin`     | **Yes**   |`1500` to `9000` | The target kelvin value at the end of the transition.<br>**Ignored unless both `hue` and `saturation` are set to `0`** |
 | `duration`   | **Yes**   |`1` to `86400`   | How long the transition should run in seconds.<br>Sixty minutes is `3600` seconds. |
 | `power`      | No        | <code>[on&#124;off]</code> | Used to turn the bulbs `on` at the start of the event or `off` when the event ends. If not provided the power state remains unchanged. |
-| `reference`  | No        | See below       | Used to specify the bulbs to target for the event | 
+| `transform_options` | No | - | An optional [list of options](#adding-options-for-each-event) to apply to each event. |
+| `reference`  | No        | - | Used to [specify the bulbs](#specifying-bulbs-for-each-event) to target for each event. |
 
 The [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes. 
+
+### Adding options for each event
+
+There are two options that can be used to fine-tune the transformation that occurs for each event:
+
+* `transition_color`: modifies the behaviour of the bulb if it's powered on by the event. By default if `power` is set to `on`, the target bulb(s) will be set to the target HSBK or color value before being powered on and the transition duration will only affect the brightness. By setting this to `True`, the target bulb(s) will power on with the existing HSBK values and the transition will affect all values, i.e. the bulb will transition both color and brightness over the duration. This is particularly useful for `wakeup` transitions so that the initial power on doesn't jump to a much higher kelvin value immediately.
+* `keep_brightness`: modifies the transition to ignore any brightness value, i.e. only the HSK/color values are transitions over the duration while the brightness remains the same.
 
 ### Specifying bulbs for each event
 

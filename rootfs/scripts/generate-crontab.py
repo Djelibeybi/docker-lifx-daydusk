@@ -216,13 +216,14 @@ async def make_crontab(collector, **kwargs):
         
         ./generate-crontab.py
     """
-    extra_script_args = ["--silent", "--logging-program", "lifx", "--syslog-address", "/dev/log"]
+    extra_script_args = ["--silent"]
     daydusk = collector.configuration["daydusk"]
-    cronfile = '/etc/cron.d/daydusk'
+    cronfile = '/config/daydusk.crontab'
     if not daydusk.schedules:
         raise NoSchedules()
 
-    cron = CronTab(user=False)
+    #cron = CronTab(user=False)
+    cron = CronTab()
     lifx_script = find_lifx_script()
 
     for name, options in daydusk.schedules.items():
@@ -235,9 +236,9 @@ async def make_crontab(collector, **kwargs):
             json.dumps(options.extra),
         ]
 
-        command = " ".join([shlex.quote(part) for part in command])
+        command = str(" ".join([shlex.quote(part) for part in command])) + " >/dev/null"
 
-        job = cron.new(command=command, user="root")
+        job = cron.new(command=command)
         job.dow.on(*options.dow)
         job.minute.on(options.minute)
         job.hour.on(options.hour)

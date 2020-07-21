@@ -7,7 +7,7 @@ services:
   - docker
 
 env:
-  - DOCKER_PLATFORM=linux/386,linux/arm64,linux/amd64,linux/arm/v8,linux/arm/v7,linux/arm/v6 
+  - DOCKER_PLATFORM=linux/386,linux/arm64,linux/amd64,linux/arm/v7,linux/arm/v6 
     TARGET_IMAGE=djelibeybi/lifx-daydusk
 
 jobs:
@@ -33,14 +33,12 @@ jobs:
 
       deploy:
         - provider: script
-          skip_cleanup: true
           on:
             tags: true
             branch: master
           script: >-
             docker buildx build --progress plain --platform $DOCKER_PLATFORM --push -t ${TARGET_IMAGE}:${TRAVIS_TAG} -t ${TARGET_IMAGE}:latest .
         - provider: script
-          skip_cleanup: true
           on:
             all_branches: true
             condition: $TRAVIS_BRANCH != "master"

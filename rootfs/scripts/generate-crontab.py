@@ -1,13 +1,13 @@
 #!/usr/local/bin/python3
 """
-A script for generating a crontab that can be used to simulate 
+A script for generating a crontab that can be used to simulate
 
 It takes in options from photons configuration that looks a bit like:
 
     ---
 
     daydusk:
-      
+
       schedules:
         day:
           hour: 7
@@ -88,7 +88,6 @@ def find_lifx_script():
         raise NoLIFXScript()
 
     return lifx_script
-
 
 class NoSchedules(PhotonsAppError):
     desc = dedent(
@@ -201,7 +200,7 @@ class DayDusk(dictobj.Spec):
         sb.dictof(sb.string_spec(), Schedule.FieldSpec(formatter=MergedOptionStringFormatter))
     )
 
-@addon_hook(extras=[("lifx.photons", "control"), ("lifx.photons", "device_finder")])
+@addon_hook(extras=[("lifx.photons", "control")])
 def __lifx__(collector, *args, **kwargs):
     collector.register_converters(
         {"daydusk": DayDusk.FieldSpec(formatter=MergedOptionStringFormatter)}
@@ -213,7 +212,7 @@ async def make_crontab(collector, **kwargs):
     Make a crontab file executing our day dusk options.
 
     Usage is::
-        
+
         ./generate-crontab.py
     """
     extra_script_args = ["--silent"]
@@ -222,7 +221,6 @@ async def make_crontab(collector, **kwargs):
     if not daydusk.schedules:
         raise NoSchedules()
 
-    #cron = CronTab(user=False)
     cron = CronTab()
     lifx_script = find_lifx_script()
 
@@ -236,7 +234,7 @@ async def make_crontab(collector, **kwargs):
             json.dumps(options.extra),
         ]
 
-        command = str(" ".join([shlex.quote(part) for part in command])) + " >/dev/null"
+        command = str(" ".join([shlex.quote(part) for part in command]))
 
         job = cron.new(command=command)
         job.dow.on(*options.dow)

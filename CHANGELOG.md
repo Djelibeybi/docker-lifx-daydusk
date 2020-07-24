@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## 2.2.0
 
+### Fixed in v2.2.0
+
+- Recreate crontab on startup instead of reading existing crontab file.
+
 ### Changed in v2.2.0
 
 - Updated to [Photons](https://github.com/delfick/photons) v0.30.0
@@ -31,12 +35,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added in v2.0.0
 
-- Hue and saturation can be set for each event along with brightness and kelvin.<br>Note that if hue and/or saturation are set to any value greater than `0`, the kelvin value is ignored. 
-- Events can be limited to specific days or will run on every day (default) 
+- Hue and saturation can be set for each event along with brightness and kelvin.<br>Note that if hue and/or saturation are set to any value greater than `0`, the kelvin value is ignored.
+- Events can be limited to specific days or will run on every day (default)
 
 ### Changed in v2.0.0
 
-- Logging configuration modified so that only LIFX-related errors are logged. 
+- Logging configuration modified so that only LIFX-related errors are logged.
 
 ## 1.1.0
 
@@ -55,7 +59,7 @@ Initial stable release.
 ### Added in v1.0.0
 
 - Basic LIFX Day & Dusk functionality
-- Ability to specify target bulbs 
+- Ability to specify target bulbs
 - Ability to configure each transition, including power state
 - Multi-arch image build support via Travis CI
 - Manifest support on Docker Hub

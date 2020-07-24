@@ -20,6 +20,9 @@ RUN set -x && apt-get update \
   && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* \
   && pip install lifx-photons-core python-crontab
 
+# Set the LIFX_CONFIG path for Supercronic
+ENV LIFX_CONFIG=/config/lifx.yml
+
 COPY rootfs /
 RUN  chmod +x /scripts/entrypoint.sh
 

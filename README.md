@@ -1,25 +1,36 @@
+<!-- markdownlint-disable MD033 -->
 # LIFX Day and Dusk in a Docker Container
 
 [![master branch](https://img.shields.io/travis/djelibeybi/docker-lifx-daydusk/master?label=master&logo=travis&style=for-the-badge)](https://travis-ci.org/Djelibeybi/docker-lifx-daydusk) [![GitHub issues](https://img.shields.io/github/issues/djelibeybi/docker-lifx-daydusk?logo=github&style=for-the-badge)](https://github.com/Djelibeybi/docker-lifx-daydusk/issues) [![Docker Pulls](https://img.shields.io/docker/pulls/djelibeybi/lifx-daydusk?logo=docker&style=for-the-badge)](https://hub.docker.com/r/djelibeybi/lifx-daydusk)
 
-
-This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over bulb selection, timing, kelvin value and power status. 
+This container reproduces the LIFX Day and Dusk scheduling functionality locally
+but removes the dependency on the LIFX Cloud and adds fine-grained control over
+bulb selection, timing, kelvin value and power status.
 
 ## Breaking Changes
 
-The documentation below describes the latest `v2.0.0` release which has breaking changes since the release of `v1.1.0`. Please review the [`CHANGELOG.md`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/CHANGELOG.md) for details of these changes.
+The documentation below describes the latest `v2.0.0` release which has breaking
+changes since the release of `v1.1.0`. Please review the [`CHANGELOG.md`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/CHANGELOG.md) for details of these changes.
 
 ## Supported Platforms
 
 This image is supported on the following platforms:
- * `amd64`: 64-bit Intel or AMD processors including Intel-based Synology NAS devices. 
- * `aarch64`: 64-bit Arm processors including Raspberry Pi 3 Model B/B+ and Raspberry Pi 4.
 
-Docker will automatically download the correct image based on the archiecture upon which it is running.
+* `amd64`: 64-bit Intel or AMD processors including Intel-based Synology NAS
+ devices.
+* `aarch64`: 64-bit Arm processors including Raspberry Pi 3 Model B/B+ and
+ Raspberry Pi 4.
+
+Docker will automatically download the correct image based on the archiecture
+upon which it is running.
 
 ## Usage
 
-LIFX discovery requires UDP broadcast access to your local network in order to successfully discover bulbs. This can be achieved using the ```--net=host``` flag. Currently this image will __not work__ if you are using [Docker for Mac](https://github.com/docker/for-mac/issues/68) or [Docker for Windows](https://github.com/docker/for-win/issues/543).
+LIFX discovery requires UDP broadcast access to your local network in order to
+successfully discover bulbs. This can be achieved using the ```--net=host```
+flag. Currently this image will __not work__ if you are using
+[Docker for Mac](https://github.com/docker/for-mac/issues/68) or
+[Docker for Windows](https://github.com/docker/for-win/issues/543).
 
 The following command will start the container with the required configuration:
 
@@ -28,8 +39,6 @@ docker run \
   --detach \
   --name=daydusk \
   --net=host \
-  -e PUID=<UID> \
-  -e PGID=<GID> \
   -e TZ=<Time Zone> \
   -v /path/to/config/:/config/ \
   djelibeybi/lifx-daydusk
@@ -37,29 +46,43 @@ docker run \
 
 ### Parameters
 
-The following parameters can be specified on the command-line when executing `docker run` to start the container:
+The following parameters can be specified on the command-line when executing
+ `docker run` to start the container:
 
-* `--net=host`: Shares host networking with container. (**required**). 
+* `--net=host`: Shares host networking with container. (**required**).
 * `-e TZ`: for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London` (**required**)
 * `-v /path/to/config/:/config/` - **Required:** see below for details.
-* `-e PGID`: for GroupID - see below for explanation
-* `-e PUID`: for UserID - see below for explanation
 
-> **IMPORTANT:** You **must** set a valid `TZ` value otherwise the container timezone will be set to UTC and your events may fire at the wrong time.
+> **IMPORTANT:** You **must** set a valid `TZ` value otherwise the container
+timezone will be set to UTC and your events may fire at the wrong time.
 
-The `--net=host` option can be replaced by advanced users with an appropriate `macvlan` network configuration however the configuration of the network itself and modification of the `docker run` command to use that network is left as an exercise for the reader.
+The `--net=host` option can be replaced by advanced users with an appropriate
+`macvlan` network configuration however the configuration of the network itself
+and modification of the `docker run` command to use that network is left as an
+exercise for the reader.
 
 ## Creating the `daydusk.yml` configuration file
 
-The sample `docker run` command above maps the local `/path/to/config` directory to the `/config` directory inside the container. You should change `/path/to/config` to an actual directory on your host system and you must create at least the `daydusk.yml` file in this directory. 
+The sample `docker run` command above maps the local `/path/to/config` directory
+to the `/config` directory inside the container. You should change `/path/to/config`
+to an actual directory on your host system and you must create at least the
+`daydusk.yml` file in this directory.
 
-> **NOTE:** the [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) matches the default LIFX Day & Dusk configuration **exactly** including powering on the specified bulbs at the start of each event.
+> **NOTE:** the [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml)
+matches the default LIFX Day & Dusk configuration **exactly** including powering
+on the specified bulbs at the start of each event.
 
 ### Syntax
 
-The `daydusk.yml` file consists of one or more named events that define the time to start the transition, the end state of the bulbs, the duration of the transition and whether the bulbs should turn on automatically before the transition starts or turn off automatically after the transition ends.
+The `daydusk.yml` file consists of one or more named events that define the time
+ to start the transition, the end state of the bulbs, the duration of the
+ transition and whether the bulbs should turn on automatically before the
+ transition starts or turn off automatically after the transition ends.
 
-In the example below, the event named `wakeup` will fire at **6:30am** on Saturday and Sunday to trigger the bulbs to power on _in whatever state they were in when they were previously powered off_ and then begin a **30 minute** transition to **80% brightness** at **4000 kelvin**:
+In the example below, the event named `wakeup` will fire at **6:30am** on
+Saturday and Sunday to trigger the bulbs to power on _in whatever state they
+were in when they were previously powered off_ and then begin a **30 minute**
+transition to **80% brightness** at **4000 kelvin**:
 
 ```yaml
 daydusk:
@@ -96,11 +119,20 @@ daydusk:
      ...
 ```
 
-Note the opening `daydusk:` and `schedules:` only appear once at the beginning of the file. You can validate your YAML syntax online at [http://www.yamllint.com/](http://www.yamllint.com/).
+Note the opening `daydusk:` and `schedules:` only appear once at the beginning
+of the file. You can validate your YAML syntax online at
+[http://www.yamllint.com/](http://www.yamllint.com/).
 
-There is no limit to the number of events, though each event will add additional time to process when the container starts. To change the events, use `docker stop` to shut down the running container, modify the `daydusk.yml` file and then run `docker start` to start the container back up again.
+There is no limit to the number of events, though each event will add additional
+time to process when the container starts. To change the events, use `docker stop`
+to shut down the running container, modify the `daydusk.yml` file and then run
+`docker start` to start the container back up again.
 
-The following table documents each parameter and all parameters are required for each event:
+> **Note:** The container will regenrate the schedule from `daydusk.yml` every
+time it starts.
+
+The following table documents each parameter and all parameters are required
+for each event:
 
 | Parameter    | Required? | Value            | Detail |
 | ------------ | :-------- | :--------------- | :----- |
@@ -116,69 +148,77 @@ The following table documents each parameter and all parameters are required for
 | `transform_options` | No | - | An optional [list of options](#adding-options-for-each-event) to apply to each event. |
 | `reference`  | No        | - | Used to [specify the bulbs](#specifying-bulbs-for-each-event) to target for each event. |
 
-The [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes. 
+The [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes.
 
 ### Adding options for each event
 
-There are two options that can be used to fine-tune the transformation that occurs for each event:
+There are two options that can be used to fine-tune the transformation that
+occurs for each event:
 
-* `transition_color`: modifies the behaviour of the bulb if it's powered on by the event. By default if `power` is set to `on`, the target bulb(s) will be set to the target HSBK or color value before being powered on and the transition duration will only affect the brightness. By setting this to `True`, the target bulb(s) will power on with the existing HSBK values and the transition will affect all values, i.e. the bulb will transition both color and brightness over the duration. This is particularly useful for `wakeup` transitions so that the initial power on doesn't jump to a much higher kelvin value immediately.
-* `keep_brightness`: modifies the transition to ignore any brightness value, i.e. only the HSK/color values are transitions over the duration while the brightness remains the same.
+* `transition_color`: modifies the behaviour of the bulb if it's powered on by
+the event. By default if `power` is set to `on`, the target bulb(s) will be set
+to the target HSBK or color value before being powered on and the transition
+duration will only affect the brightness. By setting this to `True`, the target
+bulb(s) will power on with the existing HSBK values and the transition will
+affect all values, i.e. the bulb will transition both color and brightness over
+ the duration. This is particularly useful for `wakeup` transitions so that the
+ initial power on doesn't jump to a much higher kelvin value immediately.
+* `keep_brightness`: modifies the transition to ignore any brightness value,
+i.e. only the HSK/color values are transitions over the duration while the
+brightness remains the same.
 
 ### Specifying bulbs for each event
 
-The `reference` field is used to determine which bulbs will be targeted for each event. If an event does not contain a reference field, all discovered bulbs will be used. The reference field can be specified in any of the following formats on a per-event basis, i.e. you can chose to use one method for an event and a different method for another.
+The `reference` field is used to determine which bulbs will be targeted for each
+ event. If an event does not contain a reference field, all discovered bulbs
+ will be used. The reference field can be specified in any of the following
+ formats on a per-event basis, i.e. you can chose to use one method for an event
+  and a different method for another.
 
-> **Currently, no validation is performed to ensure the serial numbers are valid or if any specified files exist.** <br>
-> Likewise, no validation of the provided filters is performed, so it's possible for a filter to return no results or unexpected results if misconfigured.
+> **Currently, no validation is performed to ensure the serial numbers are valid
+ or if any specified files exist.** <br>
+> Likewise, no validation of the provided filters is performed, so it's possible
+for a filter to return no results or unexpected results if misconfigured.
 
 The available formats are:
-  
+
 **A single serial number:**
+
 ```yaml
 reference: d073d5000001
 ```
 
 **A list of serial numbers:**
+
 ```yaml
-reference: 
+reference:
   - d073d5000001
   - d073d5000002
 ```
-  
+
 **A file that contains a list of serial numbers (one per line):**
+
 ```yaml
 reference: file:/config/bulbs.conf
 ```
 
 **A filter that is dynamically evaluated on each run based on bulb-specific data:**
+
 ```yaml
 reference: match:group_name=bedroom
 ```
 
-The Photons Core documentation maintains a list [valid filters](https://delfick.github.io/photons-core/modules/photons_device_finder.html#finder-filters) that can be used with this option. Multiple filters can be combined using an ampersand, e.g. `match:group_name=bedroom&power=on` would match all bulbs in the group named `bedroom` that are currently powered on.
+The Photons Core documentation maintains a list [valid filters](https://delfick.github.io/photons-core/modules/photons_device_finder.html#finder-filters) that can be used with this option. Multiple filters can be
+combined using an ampersand, e.g. `match:group_name=bedroom&power=on` would match
+ all bulbs in the group named `bedroom` that are currently powered on.
 
-### Using the PUID and PGID environment variables
+### Additional Photons configuration
 
-Mounting volumes by using the `-v` parameter in the `docker run` command can cause permissions issues between the host and the container. 
-
-To avoid this issue, determine the `uid` and `gid` of the user that owns the `/path/to/config` directory on the host and provide those values via the `PUID` and `PGID` environment variables available for the `docker run` command.
-
-You can use the following command on the host system to determine the correct `PUID` and `PGID` values, taking care to replace `/path/to/config` with the actual directory path on the host:
-
-```bash
-$ ls -ldn /path/to/config | awk '{print "PUID="$3" and PGID="$4}'
-PUID=501 and PGID=20
-```
-
-Alternatively, use the `id` command to get the appropriate `uid` and `gid` values for a specific user:
-
-```bash
-$ id username
-uid=501(username) gid=20(staff) groups=20(staff)
-```
+To provide [additional configuration options](https://photons.delfick.com/configuration/index.html)
+to Photons, simply add `lifx.yml` file to the `/config` directory.
 
 ## Acknowledgements
 
-* [oznu](https://github.com/oznu) for [`docker-homebridge`](https://github.com/oznu/docker-homebridge) upon which the multi-arch support for this repo and image is ~~slightly~~ mostly derived.
-* [delfick](https://github.com/delfick) for [`photons-core`](https://github.com/delfick/photons-core) upon which my code depends and for providing additional pointers on using Photons for configuration validation.
+* [delfick](https://github.com/delfick) for [Photons](https://photons.delfick.com)
+upon which my code depends and for providing additional pointers on using
+Photons for configuration validation.

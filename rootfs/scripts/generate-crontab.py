@@ -234,7 +234,7 @@ async def make_crontab(collector, **kwargs):
             json.dumps(options.extra),
         ]
 
-        command = str(" ".join([shlex.quote(part) for part in command]))
+        command = str(" ".join([shlex.quote(part) for part in command])) + " >/dev/null"
 
         job = cron.new(command=command)
         job.dow.on(*options.dow)

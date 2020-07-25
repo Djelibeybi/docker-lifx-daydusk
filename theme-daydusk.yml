@@ -16,4 +16,4 @@ daydusk:
         - blue
         - purple
       override:
-        - brightness: 1
+        brightness: 1

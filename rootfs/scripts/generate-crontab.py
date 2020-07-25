@@ -76,9 +76,8 @@ from photons_protocol.types import enum_spec
 
 from photons_control.colour import make_hsbk
 
-from delfick_project.norms import dictobj, sb, BadSpecValue
+from delfick_project.norms import dictobj, sb, Meta, BadSpecValue
 from delfick_project.addons import addon_hook
-from delfick_project.logging import setup_logging
 
 log = logging.getLogger("daydusk")
 
@@ -91,16 +90,6 @@ default_colors = [
     (271, 1, 0.3, 3500),
     (294, 1, 0.3, 3500),
 ]
-
-def find_lifx_script():
-    bin_dir = distutils.sysconfig.get_config_var("prefix")
-    lifx_script = os.path.join(bin_dir, "bin", "lifx")
-
-    if not os.path.exists(lifx_script):
-        log.error(NoLIFXScript())
-        raise(NoLIFXScript())
-
-    return lifx_script
 
 class NoSchedules(PhotonsAppError):
     desc = dedent(
@@ -131,9 +120,6 @@ class NoSchedules(PhotonsAppError):
                 - transition_color: True
     """
     ).rstrip()
-
-class NoLIFXScript(PhotonsAppError):
-    desc = "I couldn't find the lifx script"
 
 class Days(enum.Enum):
     SUNDAY = 0
@@ -245,14 +231,8 @@ class DayDusk(dictobj.Spec):
         sb.dictof(sb.string_spec(), Schedule.FieldSpec(formatter=MergedOptionStringFormatter))
     )
 
-@addon_hook(extras=[("lifx.photons", "control")])
-def __lifx__(collector, *args, **kwargs):
-    collector.register_converters(
-        {"daydusk": DayDusk.FieldSpec(formatter=MergedOptionStringFormatter)}
-    )
-
-@an_action()
-async def make_crontab(collector, **kwargs):
+@an_action(needs_target=False, special_reference=False)
+async def make_crontab(collector, target, reference, artifact, **kwargs):
     """
     Make a crontab file executing our day dusk options.
 
@@ -260,24 +240,39 @@ async def make_crontab(collector, **kwargs):
 
         ./generate-crontab.py
     """
-    extra_script_args = ["--silent"]
+    collector.register_converters(
+        {"daydusk": DayDusk.FieldSpec(formatter=MergedOptionStringFormatter)}
+    )
     daydusk = collector.configuration["daydusk"]
-    cronfile = '/config/daydusk.crontab'
+
+    spec = sb.set_options(
+        path=sb.defaulted(sb.string_spec(), '/config/daydusk.yml'),
+        lifx_script=sb.defaulted(sb.string_spec(), '/usr/local/bin/lifx')
+    )
+    extra = collector.configuration["photons_app"].extra_as_json
+    kwargs = {
+        k: v for k, v in spec.normalise(Meta.empty(), extra).items() if v is not sb.NotSpecified
+    }
+
+    cronfile = kwargs['path']
+    lifx_script = kwargs['lifx_script']
+
     if not daydusk.schedules:
         raise NoSchedules()
 
     cron = CronTab()
-    lifx_script = find_lifx_script()
+
+    extra_script_args = ["--silent"]
 
     for name, options in daydusk.schedules.items():
-        extra = {**options.hsbk, **options.extra}
+        script_args = {**options.hsbk, **options.extra}
         command = [
             lifx_script,
             options.task,
             options.reference,
             *extra_script_args,
             "--",
-            json.dumps(extra),
+            json.dumps(script_args),
         ]
 
         command = str(" ".join([shlex.quote(part) for part in command])) + " >/dev/null"
@@ -291,12 +286,7 @@ async def make_crontab(collector, **kwargs):
         os.remove(cronfile)
 
     cron.write(cronfile)
-    log.info(f"Created crontab at {cronfile}")
+    print(f"Generated crontab at {cronfile}")
 
 if __name__ == "__main__":
-    from photons_app.executor import main
-    import sys
-
-    setup_logging()
-
-    main(["make_crontab"])
+    __import__("photons_core").run('lan:make_crontab --silent {@:1:}')

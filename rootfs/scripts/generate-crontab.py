@@ -78,6 +78,7 @@ from photons_control.colour import make_hsbk
 
 from delfick_project.norms import dictobj, sb, BadSpecValue
 from delfick_project.addons import addon_hook
+from delfick_project.logging import setup_logging
 
 log = logging.getLogger("daydusk")
 
@@ -96,7 +97,8 @@ def find_lifx_script():
     lifx_script = os.path.join(bin_dir, "bin", "lifx")
 
     if not os.path.exists(lifx_script):
-        raise NoLIFXScript()
+        log.error(NoLIFXScript())
+        raise(NoLIFXScript())
 
     return lifx_script
 
@@ -289,10 +291,12 @@ async def make_crontab(collector, **kwargs):
         os.remove(cronfile)
 
     cron.write(cronfile)
-    print(f"Created crontab at {cronfile}")
+    log.info(f"Created crontab at {cronfile}")
 
 if __name__ == "__main__":
     from photons_app.executor import main
     import sys
+
+    setup_logging()
 
     main(["make_crontab"])

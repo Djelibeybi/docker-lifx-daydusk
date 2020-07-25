@@ -217,7 +217,7 @@ class Schedule(dictobj.Spec):
 
     @property
     def hsbk(self):
-        if self.task == 'transform':
+        if self.task == 'lan:transform':
             keys = ["hue", "saturation", "brightness", "kelvin"]
             options = {k: v for k, v in self.as_dict().items() if k in keys}
             return {k: v for k, v in options.items() if v is not None}

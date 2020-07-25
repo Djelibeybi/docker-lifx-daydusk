@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## 2.2.0
 
+### Added in v2.2.0
+
+- **Themes:** you can now apply a theme to your devices instead of a transition.
+
 ### Fixed in v2.2.0
 
 - Recreate crontab on startup instead of reading existing crontab file.
@@ -35,7 +39,9 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added in v2.0.0
 
-- Hue and saturation can be set for each event along with brightness and kelvin.<br>Note that if hue and/or saturation are set to any value greater than `0`, the kelvin value is ignored.
+- Hue and saturation can be set for each event along with brightness and kelvin.
+  Note that if hue and/or saturation are set to any value greater than `0`,
+  the kelvin value is ignored.
 - Events can be limited to specific days or will run on every day (default)
 
 ### Changed in v2.0.0

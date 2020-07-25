@@ -7,11 +7,6 @@ This container reproduces the LIFX Day and Dusk scheduling functionality locally
 but removes the dependency on the LIFX Cloud and adds fine-grained control over
 bulb selection, timing, kelvin value and power status.
 
-## Breaking Changes
-
-The documentation below describes the latest `v2.0.0` release which has breaking
-changes since the release of `v1.1.0`. Please review the [`CHANGELOG.md`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/CHANGELOG.md) for details of these changes.
-
 ## Supported Platforms
 
 This image is supported on the following platforms:
@@ -128,7 +123,7 @@ time to process when the container starts. To change the events, use `docker sto
 to shut down the running container, modify the `daydusk.yml` file and then run
 `docker start` to start the container back up again.
 
-> **Note:** The container will regenrate the schedule from `daydusk.yml` every
+> **Note:** The container will rebuild the schedule from `daydusk.yml` every
 time it starts.
 
 The following table documents each parameter and all parameters are required
@@ -139,16 +134,24 @@ for each event:
 | `days`       | No        | List of either `MONDAY` to `SUNDAY` or `0` to `6` | An list of days on which this event should occur. If not specified, the event will occur daily.<br>If specified numerically, `0` is Sunday and `6` is Saturday. |
 | `hour`       | **Yes**   | `0` to `23`     | The hour at which the transition starts |
 | `minute`     | **Yes**   |`0` to `59`      | The minute after the hour at which the transition starts |
+| `task`       | No        | `theme`         | If you want to apply a theme to the selected bulbs, set this to `theme`. |
 | `hue`        | No        |`0` to `360`     | The target hue in degrees at the end of the transition.<br>**Must be set to `0` for temperature adjustment** |
 | `saturation` | No        |`0` to `1`       | The target saturation as a float, e.g. for 80% specify `0.8`.<br>**Must be set to `0` for temperature adjustment** |
 | `brightness` | **Yes**   |`1` to `1`       | The target brightness as a float, e.g. for 80% specify `0.8` |
 | `kelvin`     | **Yes**   |`1500` to `9000` | The target kelvin value at the end of the transition.<br>**Ignored unless both `hue` and `saturation` are set to `0`** |
+| `colors`     | No        | -               | An optional [list of colors](#specifying-colors-for-a-theme) to use when applying a theme. Only valid if `task` is set to `theme`. |
 | `duration`   | **Yes**   |`1` to `86400`   | How long the transition should run in seconds.<br>Sixty minutes is `3600` seconds. |
 | `power`      | No        | <code>[on&#124;off]</code> | Used to turn the bulbs `on` at the start of the event or `off` when the event ends. If not provided the power state remains unchanged. |
-| `transform_options` | No | - | An optional [list of options](#adding-options-for-each-event) to apply to each event. |
-| `reference`  | No        | - | Used to [specify the bulbs](#specifying-bulbs-for-each-event) to target for each event. |
+| `transform_options` | No | -               | An optional [list of options](#adding-options-for-each-event) to apply to each event. |
+| `override`   | No        | -               | An optional [list of overrides](#adding-overrides-for-a-theme) to apply when applying a theme. |
+| `reference`  | No        | -               | Used to [specify the bulbs](#specifying-bulbs-for-each-event) to target for each event. |
 
-The [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes.
+The [`sample-daydusk.yml`](sample-daydusk.yml) file contains four events that
+replicate the default LIFX Day & Dusk times, brightness and kelvin values as
+well as the transition duration and power state changes.
+
+The [`theme-daydusk.yml`](theme-daydusk.yml) will set a rainbow theme across
+all devices.
 
 ### Adding options for each event
 
@@ -166,6 +169,55 @@ affect all values, i.e. the bulb will transition both color and brightness over
 * `keep_brightness`: modifies the transition to ignore any brightness value,
 i.e. only the HSK/color values are transitions over the duration while the
 brightness remains the same.
+
+Example usage:
+
+```yaml
+transform_options:
+  transition_color: True
+  keep_brightness: False
+```
+
+### Specifying colors for a theme
+
+The `colors` parameter is optional. If omitted, the default theme uses seven
+colors at 30% brightness.
+
+To specify your own colors, use any combination of the following formats:
+
+* Names: `white`, `red`, `orange`, `yellow`, `cyan`, `green`, `blue`
+`purple`, `pink`
+* Hexadecimal: `hex:#RRGGBB`
+* Red, green, blue: `rgb:0-255,0-255,0-255`
+* Hue, saturation and brightness: `hsb:0-359, 0-1, 0-1`
+
+Here is an example list of colors that uses each of these formats:
+
+```yaml
+colors:
+  - red
+  - hex:#00ff00
+  - rgb:0, 0, 255
+  - hsb:120, 1, 0.7
+```
+
+Only the `hsb` option specifies brightness for each color. You can override
+the brightness globally using the `override` option.
+
+### Adding overrides for a theme
+
+By default, Photons will use the current brightness of the target device(s) when
+applying a theme with specified colors that don't include a specific brightness
+value. This can be overridden by providing a brightness for all devices when
+applying the theme.
+
+To specify a global brightness, add it as an override to your event. The
+following example sets the brightness to 70%:
+
+```yaml
+override:
+  - brightness: 0.7
+```
 
 ### Specifying bulbs for each event
 

@@ -246,7 +246,7 @@ async def make_crontab(collector, target, reference, artifact, **kwargs):
     daydusk = collector.configuration["daydusk"]
 
     spec = sb.set_options(
-        path=sb.defaulted(sb.string_spec(), '/config/daydusk.yml'),
+        path=sb.defaulted(sb.string_spec(), '/config/daydusk.crontab'),
         lifx_script=sb.defaulted(sb.string_spec(), '/usr/local/bin/lifx')
     )
     extra = collector.configuration["photons_app"].extra_as_json

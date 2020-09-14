@@ -1,13 +1,13 @@
 #!/usr/local/bin/python3
 """
-A script for generating a crontab that can be used to simulate 
+A script for generating a crontab that can be used to simulate
 
 It takes in options from photons configuration that looks a bit like:
 
     ---
 
     daydusk:
-      
+
       schedules:
         day:
           hour: 7
@@ -74,21 +74,22 @@ from photons_app.actions import an_action
 
 from photons_protocol.types import enum_spec
 
-from delfick_project.norms import dictobj, sb, BadSpecValue
+from photons_control.colour import make_hsbk
+
+from delfick_project.norms import dictobj, sb, Meta, BadSpecValue
 from delfick_project.addons import addon_hook
 
 log = logging.getLogger("daydusk")
 
-
-def find_lifx_script():
-    bin_dir = distutils.sysconfig.get_config_var("prefix")
-    lifx_script = os.path.join(bin_dir, "bin", "lifx")
-
-    if not os.path.exists(lifx_script):
-        raise NoLIFXScript()
-
-    return lifx_script
-
+default_colors = [
+    (0, 1, 0.3, 3500),
+    (40, 1, 0.3, 3500),
+    (60, 1, 0.3, 3500),
+    (127, 1, 0.3, 3500),
+    (239, 1, 0.3, 3500),
+    (271, 1, 0.3, 3500),
+    (294, 1, 0.3, 3500),
+]
 
 class NoSchedules(PhotonsAppError):
     desc = dedent(
@@ -119,9 +120,6 @@ class NoSchedules(PhotonsAppError):
                 - transition_color: True
     """
     ).rstrip()
-
-class NoLIFXScript(PhotonsAppError):
-    desc = "I couldn't find the lifx script"
 
 class Days(enum.Enum):
     SUNDAY = 0
@@ -159,6 +157,24 @@ class power_spec(sb.Spec):
 
         raise BadSpecValue("Power must be on/off, True/False or 0/1", wanted=val, meta=meta)
 
+class task_spec(sb.Spec):
+    def normalise_empty(self, meta):
+        return "lan:transform"
+
+    def normalise_filled(self, meta, val):
+        if val in ("theme"):
+            return "lan:apply_theme"
+        else:
+            return "lan:transform"
+
+class colors_spec(sb.Spec):
+    def normalise_empty(self, meta):
+        return default_colors
+
+    def normalise_filled(self, meta, val):
+        cs = [make_hsbk(val) for val in val]
+        return [(c["hue"], c["saturation"], c["brightness"], c["kelvin"]) for c in cs]
+
 class reference_spec(sb.Spec):
     def normalise_empty(self, meta):
         return ""
@@ -171,20 +187,34 @@ class Schedule(dictobj.Spec):
     hour = dictobj.Field(range_spec(sb.integer_spec(), 0, 23), wrapper=sb.required)
     minute = dictobj.Field(range_spec(sb.integer_spec(), 0, 59), wrapper=sb.required)
 
+    task = dictobj.Field(task_spec)
+
     hue = dictobj.Field(range_spec(sb.float_spec(), 0, 360), default=0)
     saturation = dictobj.Field(range_spec(sb.float_spec(), 0, 1), default=0)
     brightness = dictobj.Field(range_spec(sb.float_spec(), 0, 1), default=1)
     kelvin = dictobj.Field(range_spec(sb.integer_spec(), 1500, 9000), default=3500)
+    transform_options = dictobj.NullableField(sb.dictof(sb.string_spec(), sb.boolean()))
 
     duration = dictobj.NullableField(sb.float_spec)
     power = dictobj.NullableField(power_spec)
-    transform_options = dictobj.NullableField(sb.dictof(sb.string_spec(), sb.boolean()))
+
+    colors = dictobj.NullableField(colors_spec)
+    override = dictobj.NullableField(sb.dictof(sb.string_spec(), range_spec(sb.float_spec(), 0, 1)))
 
     reference = dictobj.Field(reference_spec)
 
     @property
+    def hsbk(self):
+        if self.task == 'lan:transform':
+            keys = ["hue", "saturation", "brightness", "kelvin"]
+            options = {k: v for k, v in self.as_dict().items() if k in keys}
+            return {k: v for k, v in options.items() if v is not None}
+        else:
+            return {}
+
+    @property
     def extra(self):
-        keys_except = ["days", "hour", "minute", "reference"]
+        keys_except = ["days", "hour", "minute", "reference", "task", "hue", "saturation", "brightness", "kelvin"]
         options = {k: v for k, v in self.as_dict().items() if k not in keys_except}
         return {k: v for k, v in options.items() if v is not None}
 
@@ -201,43 +231,53 @@ class DayDusk(dictobj.Spec):
         sb.dictof(sb.string_spec(), Schedule.FieldSpec(formatter=MergedOptionStringFormatter))
     )
 
-@addon_hook(extras=[("lifx.photons", "control"), ("lifx.photons", "device_finder")])
-def __lifx__(collector, *args, **kwargs):
-    collector.register_converters(
-        {"daydusk": DayDusk.FieldSpec(formatter=MergedOptionStringFormatter)}
-    )
-
-@an_action()
-async def make_crontab(collector, **kwargs):
+@an_action(needs_target=False, special_reference=False)
+async def make_crontab(collector, target, reference, artifact, **kwargs):
     """
     Make a crontab file executing our day dusk options.
 
     Usage is::
-        
+
         ./generate-crontab.py
     """
-    extra_script_args = ["--silent", "--logging-program", "lifx", "--syslog-address", "/dev/log"]
+    collector.register_converters(
+        {"daydusk": DayDusk.FieldSpec(formatter=MergedOptionStringFormatter)}
+    )
     daydusk = collector.configuration["daydusk"]
-    cronfile = '/etc/cron.d/daydusk'
+
+    spec = sb.set_options(
+        path=sb.defaulted(sb.string_spec(), '/config/daydusk.crontab'),
+        lifx_script=sb.defaulted(sb.string_spec(), '/usr/local/bin/lifx')
+    )
+    extra = collector.configuration["photons_app"].extra_as_json
+    kwargs = {
+        k: v for k, v in spec.normalise(Meta.empty(), extra).items() if v is not sb.NotSpecified
+    }
+
+    cronfile = kwargs['path']
+    lifx_script = kwargs['lifx_script']
+
     if not daydusk.schedules:
         raise NoSchedules()
 
-    cron = CronTab(user=False)
-    lifx_script = find_lifx_script()
+    cron = CronTab()
+
+    extra_script_args = ["--silent"]
 
     for name, options in daydusk.schedules.items():
+        script_args = {**options.hsbk, **options.extra}
         command = [
             lifx_script,
-            "lan:transform",
+            options.task,
             options.reference,
             *extra_script_args,
             "--",
-            json.dumps(options.extra),
+            json.dumps(script_args),
         ]
 
-        command = " ".join([shlex.quote(part) for part in command])
+        command = str(" ".join([shlex.quote(part) for part in command])) + " >/dev/null"
 
-        job = cron.new(command=command, user="root")
+        job = cron.new(command=command)
         job.dow.on(*options.dow)
         job.minute.on(options.minute)
         job.hour.on(options.hour)
@@ -246,10 +286,7 @@ async def make_crontab(collector, **kwargs):
         os.remove(cronfile)
 
     cron.write(cronfile)
-    print(f"Created crontab at {cronfile}")
+    print(f"Generated crontab at {cronfile}")
 
 if __name__ == "__main__":
-    from photons_app.executor import main
-    import sys
-
-    main(["make_crontab"])
+    __import__("photons_core").run('lan:make_crontab --silent {@:1:}')

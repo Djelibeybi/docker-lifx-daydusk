@@ -1,0 +1,19 @@
+---
+daydusk:
+
+  schedules:
+    rainbow:
+      hour: 8
+      minute: 0
+      task: theme
+      duration: 30
+      power: ON
+      colors:
+        - red
+        - yellow
+        - orange
+        - green
+        - blue
+        - purple
+      override:
+        brightness: 1

@@ -1,5 +1,12 @@
 FROM python:3.7-slim
 
+LABEL org.opencontainers.image.title="LIFX Day and Dusk in Docker"
+LABEL org.opencontainers.image.authors="Avi Miller <me@dje.li>"
+LABEL org.opencontainers.image.description="This container reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over bulb selection, timing, kelvin value and power status."
+LABEL org.opencontainers.image.documentation="https://omg.dje.li/2020/02/improving-the-lifx-day-dusk-functionality/"
+LABEL org.opencontainers.image.source="https://github.com/Djelibeybi/docker-lifx-daydusk"
+LABEL org.opencontainers.image.licenses="MIT"
+
 RUN set -x && apt-get update \
   && apt-get install -y curl tzdata gcc \
   && export ARCH=$(uname -m) \

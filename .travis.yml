@@ -34,6 +34,7 @@ jobs:
       deploy:
         - provider: script
           on:
+            tags: true
             branch: main
           script: >-
             docker buildx build --progress plain --platform $DOCKER_PLATFORM --push -t ${TARGET_IMAGE}:${TRAVIS_TAG} -t ${TARGET_IMAGE}:latest .

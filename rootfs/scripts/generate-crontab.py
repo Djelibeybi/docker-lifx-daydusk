@@ -275,7 +275,7 @@ async def make_crontab(collector, target, reference, artifact, **kwargs):
             json.dumps(script_args),
         ]
 
-        command = str(" ".join([shlex.quote(part) for part in command])) + " >/dev/null"
+        command = str(" ".join([shlex.quote(part) for part in command]))
 
         job = cron.new(command=command)
         job.dow.on(*options.dow)

@@ -16,6 +16,7 @@ This image is supported on the following platforms:
  devices.
 * `aarch64`: 64-bit Arm processors including Raspberry Pi 3 Model B/B+ and
  Raspberry Pi 4.
+* `aarch32`: 32-bit build made for Raspian which defaults to a 32-bit install.
 
 Docker will automatically download the correct image based on the archiecture
 upon which it is running.

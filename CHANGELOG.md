@@ -1,6 +1,17 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to this project will be documented in this file. The format
+is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this
+project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 2.3.0
+
+- Container image size optimisation. Reduced the final image size by 100MB
+- Build/test CI changed from Travis to GitHub Actions.
+
+## 2.2.1
+
+- Rebuild release: triggered to update the container image on Docker Hub
 
 ## 2.2.0
 
@@ -15,7 +26,8 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed in v2.2.0
 
 - Updated to [Photons](https://github.com/delfick/photons) v0.30.0
-- Switched from S6-overlay to Supercronic to reduce image size and memory consumption
+- Switched from S6-overlay to Supercronic to reduce image size and memory
+consumption
 
 ## 2.1.0
 
@@ -30,12 +42,16 @@ All notable changes to this project will be documented in this file. The format 
 ## 2.0.0
 
 > **BREAKING CHANGES!**
-> This release contains **breaking changes** since the 1.1.0 release. An existing `daydusk.json` configuration will no longer work.
+> This release contains **breaking changes** since the 1.1.0 release. An
+existing `daydusk.json` configuration will no longer work.
 
-- Switched to using YAML configuration to take advantage of the underlying Photons library validation capabilities
-- A new `sample-daydusk.yml` is provided that matches the default Day & Dusk funtionality provided by LIFX
+- Switched to using YAML configuration to take advantage of the underlying
+Photons library validation capabilities
+- A new `sample-daydusk.yml` is provided that matches the default Day & Dusk
+funtionality provided by LIFX
 - Updated documentation for the new YAML format
-- Bulbs can be specified on a per event basis in a far more flexible manner either within the configuration or via external files or filters.
+- Bulbs can be specified on a per event basis in a far more flexible manner
+either within the configuration or via external files or filters.
 
 ### Added in v2.0.0
 

@@ -8,7 +8,8 @@ on:
     branches: main
 
 jobs:
-  docker:
+  image-build-test:
+    name: Test container image build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,7 +26,8 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Test
+
+      - name: Test image build
         id: docker_test
         uses: docker/build-push-action@v2
         with:

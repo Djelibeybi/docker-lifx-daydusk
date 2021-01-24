@@ -1,16 +1,16 @@
-FROM python:3.9-slim
+FROM python:3.9.1-slim
 
 RUN set -x && apt-get update \
   && apt-get install -y curl tzdata gcc \
   && export ARCH=$(uname -m) \
   && case "${ARCH}" in \
-    i386) SC_ARCH='386'; SUPERCRONIC_SHA1SUM='daaddd5403638a24db5999bbb445ff4c300769ee';; \
-    x86_64) SC_ARCH='amd64'; SUPERCRONIC_SHA1SUM='a2e2d47078a8dafc5949491e5ea7267cc721d67c';; \
-    aarch64) SC_ARCH='arm64'; SUPERCRONIC_SHA1SUM='f011a67f4c56acbef7a75222cb1d7c0d1bb29968';; \
-    armv7l) SC_ARCH='arm'; SUPERCRONIC_SHA1SUM='0fd443072c2e028fbe6e78dc7880a1870f8ccac8';; \
+    i386) SC_ARCH='386'; SUPERCRONIC_SHA1SUM='9c40fcff02fa4e153d2f55826e1fa362cd0e448e';; \
+    x86_64) SC_ARCH='amd64'; SUPERCRONIC_SHA1SUM='048b95b48b708983effb2e5c935a1ef8483d9e3e';; \
+    aarch64) SC_ARCH='arm64'; SUPERCRONIC_SHA1SUM='8baba3dd0b0b13552aca179f6ef10d55e5dee28b';; \
+    armv7l) SC_ARCH='arm'; SUPERCRONIC_SHA1SUM='d72d3d40065c0188b3f1a0e38fe6fecaa098aad5';; \
     *) echo "Unsupported architecture."; exit 1 ;; \
   esac \
-  && curl -fsSLO "https://github.com/aptible/supercronic/releases/download/v0.1.11/supercronic-linux-${SC_ARCH}" \
+  && curl -fsSLO "https://github.com/aptible/supercronic/releases/download/v0.1.12/supercronic-linux-${SC_ARCH}" \
   && echo "${SUPERCRONIC_SHA1SUM} supercronic-linux-${SC_ARCH}" | sha1sum -c - \
   && chmod +x "supercronic-linux-${SC_ARCH}" \
   && mv "supercronic-linux-${SC_ARCH}" "/usr/local/bin/supercronic" \

@@ -8,6 +8,8 @@ This container reproduces the LIFX Day and Dusk scheduling functionality locally
 but removes the dependency on the LIFX Cloud and adds fine-grained control over
 bulb selection, timing, kelvin value and power status.
 
+![Alt](https://repobeats.axiom.co/api/embed/d94f12c0421324e280e6303aa3cb4e01fb401943.svg "Repobeats analytics image")
+
 ## Supported Platforms
 
 This image is supported on the following platforms:

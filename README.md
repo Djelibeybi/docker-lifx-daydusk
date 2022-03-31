@@ -1,12 +1,10 @@
 <!-- markdownlint-disable MD033 -->
-# LIFX Day and Dusk in a Docker Container
+# LIFX Day and Dusk in a Container
 
 [![GitHub issues](https://img.shields.io/github/issues/djelibeybi/docker-lifx-daydusk?logo=github&style=for-the-badge)](https://github.com/Djelibeybi/docker-lifx-daydusk/issues)
 [![Docker Pulls](https://img.shields.io/docker/pulls/djelibeybi/lifx-daydusk?logo=docker&style=for-the-badge)](https://hub.docker.com/r/djelibeybi/lifx-daydusk)
 
-This container reproduces the LIFX Day and Dusk scheduling functionality locally
-but removes the dependency on the LIFX Cloud and adds fine-grained control over
-bulb selection, timing, kelvin value and power status.
+This container image reproduces the LIFX Day and Dusk scheduling functionality locally but removes the dependency on the LIFX Cloud and adds fine-grained control over bulb selection, timing, kelvin value and power status.
 
 ![Alt](https://repobeats.axiom.co/api/embed/d94f12c0421324e280e6303aa3cb4e01fb401943.svg "Repobeats analytics image")
 
@@ -14,30 +12,29 @@ bulb selection, timing, kelvin value and power status.
 
 This image is supported on the following platforms:
 
-* `amd64`: 64-bit Intel or AMD processors including Intel-based Synology NAS
- devices.
-* `aarch64`: 64-bit Arm processors including Raspberry Pi 3 Model B/B+ and
- Raspberry Pi 4.
+* `amd64`: 64-bit Intel or AMD processors including Intel-based Synology NAS  devices.
+* `aarch64`: 64-bit Arm processors including Raspberry Pi 3 Model B/B+ and  Raspberry Pi 4.
 * `aarch32`: 32-bit build made for Raspian which defaults to a 32-bit install.
 
-Docker will automatically download the correct image based on the archiecture
-upon which it is running.
+This image is supported with the following OS/runtime combinations:
+
+* **macOS**: Docker Desktop
+* **Windows 10/11**: Docker Desktop using Windows Subsystem for Linux
+* **Linux**: Docker CE and Podman
 
 ## Usage
 
-LIFX discovery requires UDP broadcast access to your local network in order to
-successfully discover bulbs. This can be achieved using the ```--net=host```
-flag. Currently this image will __not work__ if you are using
-[Docker for Mac](https://github.com/docker/for-mac/issues/68) or
-[Docker for Windows](https://github.com/docker/for-win/issues/543).
+LIFX discovery relies on UDP broadcasts on the local network in order to find bulbs. This can be achieved using the ```--net=host``` parameter on Linux, but this does **not work** when using [Docker Desktop for Mac](https://github.com/docker/for-mac/issues/68) or [Docker Desktop for Windows](https://github.com/docker/for-win/issues/543).
 
-The following command will start the container with the required configuration:
+However, as UDP broadcasts are only required for discovery, you can workaround this by using [`hardcoded_discovery`](https://photons.delfick.com/configuration/discovery_options.html#discovery-options) instead, which only requires unicast UDP support and that works on all platforms. Hardcoded discovery can also be used to traverse VLANs.
+
+The following command will start the container with the required mandatory configuration:
 
 ```bash
 docker run \
   --detach \
   --name=daydusk \
-  --net=host \
+  --net=host \ # Not required if hardcoded_discovery is used
   -e TZ=<Time Zone> \
   -v /path/to/config/:/config/ \
   djelibeybi/lifx-daydusk
@@ -45,43 +42,27 @@ docker run \
 
 ### Parameters
 
-The following parameters can be specified on the command-line when executing
- `docker run` to start the container:
+The following parameters can be specified on the command-line when executing  `docker run` to start the container:
 
-* `--net=host`: Shares host networking with container. (**required**).
 * `-e TZ`: for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London` (**required**)
 * `-v /path/to/config/:/config/` - **Required:** see below for details.
+* `--net=host`: This is **required** to support automatic discovery but only works on Linux. On other platforms, use `hardcoded_discovery` via the `lifx.yml` configuration file instead of using this parameter.
 
-> **IMPORTANT:** You **must** set a valid `TZ` value otherwise the container
-timezone will be set to UTC and your events may fire at the wrong time.
+> **IMPORTANT:** You **must** set a valid `TZ` value otherwise the timezone inside the container will be set to UTC and your events will fire at the wrong time.
 
-The `--net=host` option can be replaced by advanced users with an appropriate
-`macvlan` network configuration however the configuration of the network itself
-and modification of the `docker run` command to use that network is left as an
-exercise for the reader.
+The `--net=host` option can be replaced by advanced users with an appropriate `macvlan` network configuration however the configuration of the network itself and modification of the `docker run` command to use that network is left as an exercise for the reader. For most users, using `hardcoded_discovery` is far easier.
 
 ## Creating the `daydusk.yml` configuration file
 
-The sample `docker run` command above maps the local `/path/to/config` directory
-to the `/config` directory inside the container. You should change `/path/to/config`
-to an actual directory on your host system and you must create at least the
-`daydusk.yml` file in this directory.
+The sample `docker run` command above maps the local `/path/to/config` directory to the `/config` directory inside the container. You should change `/path/to/config` to an actual directory on your host system and you must create at least the `daydusk.yml` file in this directory.
 
-> **NOTE:** the [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml)
-matches the default LIFX Day & Dusk configuration **exactly** including powering
-on the specified bulbs at the start of each event.
+> **NOTE:** the [`sample-daydusk.yml`](https://github.com/Djelibeybi/docker-lifx-daydusk/blob/develop/sample-daydusk.yml) matches the default LIFX Day & Dusk configuration **exactly** including powering on the specified bulbs at the start of each event.
 
 ### Syntax
 
-The `daydusk.yml` file consists of one or more named events that define the time
- to start the transition, the end state of the bulbs, the duration of the
- transition and whether the bulbs should turn on automatically before the
- transition starts or turn off automatically after the transition ends.
+The `daydusk.yml` file consists of one or more named events that define the time  to start the transition, the end state of the bulbs, the duration of the  transition and whether the bulbs should turn on automatically before the  transition starts or turn off automatically after the transition ends.
 
-In the example below, the event named `wakeup` will fire at **6:30am** on
-Saturday and Sunday to trigger the bulbs to power on _in whatever state they
-were in when they were previously powered off_ and then begin a **30 minute**
-transition to **80% brightness** at **4000 kelvin**:
+In the example below, the event named `wakeup` will fire at **6:30am** on Saturday and Sunday to trigger the bulbs to power on _in whatever state they were in when they were previously powered off_ and then begin a **30 minute** transition to **80% brightness** at **4000 kelvin**:
 
 ```yaml
 daydusk:
@@ -118,20 +99,15 @@ daydusk:
      ...
 ```
 
-Note the opening `daydusk:` and `schedules:` only appear once at the beginning
-of the file. You can validate your YAML syntax online at
-[http://www.yamllint.com/](http://www.yamllint.com/).
+Note the opening `daydusk:` and `schedules:` only appear once at the beginning of the file.
 
-There is no limit to the number of events, though each event will add additional
-time to process when the container starts. To change the events, use `docker stop`
-to shut down the running container, modify the `daydusk.yml` file and then run
-`docker start` to start the container back up again.
+> **Tip:** [You can validate your YAML syntax online](http://www.yamllint.com/).
 
-> **Note:** The container will rebuild the schedule from `daydusk.yml` every
-time it starts.
+There is no limit to the number of events, though each event will add additional time to process when the container starts. To change the events, use `docker stop` to shut down the running container, modify the `daydusk.yml` file and then run `docker start` to start the container back up again.
 
-The following table documents each parameter and all parameters are required
-for each event:
+> **Note:** The container will rebuild the schedule from `daydusk.yml` at startup.
+
+The following table documents each parameter and all parameters are required for each event:
 
 | Parameter    | Required? | Value            | Detail |
 | ------------ | :-------- | :--------------- | :----- |
@@ -150,29 +126,16 @@ for each event:
 | `override`   | No        | -               | An optional [list of overrides](#adding-overrides-for-a-theme) to apply when applying a theme. |
 | `reference`  | No        | -               | Used to [specify the bulbs](#specifying-bulbs-for-each-event) to target for each event. |
 
-The [`sample-daydusk.yml`](sample-daydusk.yml) file contains four events that
-replicate the default LIFX Day & Dusk times, brightness and kelvin values as
-well as the transition duration and power state changes.
+The [`sample-daydusk.yml`](sample-daydusk.yml) file contains four events that replicate the default LIFX Day & Dusk times, brightness and kelvin values as well as the transition duration and power state changes.
 
-The [`theme-daydusk.yml`](theme-daydusk.yml) will set a rainbow theme across
-all devices.
+The [`theme-daydusk.yml`](theme-daydusk.yml) will set a rainbow theme across all devices.
 
 ### Adding options for each event
 
-There are two options that can be used to fine-tune the transformation that
-occurs for each event:
+There are two options that can be used to fine-tune the transformation that occurs for each event:
 
-* `transition_color`: modifies the behaviour of the bulb if it's powered on by
-the event. By default if `power` is set to `on`, the target bulb(s) will be set
-to the target HSBK or color value before being powered on and the transition
-duration will only affect the brightness. By setting this to `True`, the target
-bulb(s) will power on with the existing HSBK values and the transition will
-affect all values, i.e. the bulb will transition both color and brightness over
- the duration. This is particularly useful for `wakeup` transitions so that the
- initial power on doesn't jump to a much higher kelvin value immediately.
-* `keep_brightness`: modifies the transition to ignore any brightness value,
-i.e. only the HSK/color values are transitions over the duration while the
-brightness remains the same.
+* `transition_color`: modifies the behaviour of the bulb if it's powered on by the event. By default if `power` is set to `on`, the target bulb(s) will be set to the target HSBK or color value before being powered on and the transition duration will only affect the brightness. By setting this to `True`, the target bulb(s) will power on with the existing HSBK values and the transition will affect all values, i.e. the bulb will transition both color and brightness over  the duration. This is particularly useful for `wakeup` transitions so that the  initial power on doesn't jump to a much higher kelvin value immediately.
+* `keep_brightness`: modifies the transition to ignore any brightness value, i.e. only the HSK/color values are transitions over the duration while the brightness remains the same.
 
 Example usage:
 
@@ -184,13 +147,11 @@ transform_options:
 
 ### Specifying colors for a theme
 
-The `colors` parameter is optional. If omitted, the default theme uses seven
-colors at 30% brightness.
+The `colors` parameter is optional. If omitted, the default theme uses seven colors at 30% brightness.
 
 To specify your own colors, use any combination of the following formats:
 
-* Names: `white`, `red`, `orange`, `yellow`, `cyan`, `green`, `blue`
-`purple`, `pink`
+* Names: `white`, `red`, `orange`, `yellow`, `cyan`, `green`, `blue` `purple`, `pink`
 * Hexadecimal: `hex:#RRGGBB`
 * Red, green, blue: `rgb:0-255,0-255,0-255`
 * Hue, saturation and brightness: `hsb:0-359, 0-1, 0-1`
@@ -205,18 +166,13 @@ colors:
   - hsb:120, 1, 0.7
 ```
 
-Only the `hsb` option specifies brightness for each color. You can override
-the brightness globally using the `override` option.
+Only the `hsb` option specifies brightness for each color. You can override the brightness globally using the `override` option.
 
 ### Adding overrides for a theme
 
-By default, Photons will use the current brightness of the target device(s) when
-applying a theme with specified colors that don't include a specific brightness
-value. This can be overridden by providing a brightness for all devices when
-applying the theme.
+By default, Photons will use the current brightness of the target device(s) when applying a theme with specified colors that don't include a specific brightness value. This can be overridden by providing a brightness for all devices when applying the theme.
 
-To specify a global brightness, add it as an override to your event. The
-following example sets the brightness to 70%:
+To specify a global brightness, add it as an override to your event. The following example sets the brightness to 70%:
 
 ```yaml
 override:
@@ -225,16 +181,9 @@ override:
 
 ### Specifying bulbs for each event
 
-The `reference` field is used to determine which bulbs will be targeted for each
- event. If an event does not contain a reference field, all discovered bulbs
- will be used. The reference field can be specified in any of the following
- formats on a per-event basis, i.e. you can chose to use one method for an event
-  and a different method for another.
+The `reference` field is used to determine which bulbs will be targeted for each event. If an event does not contain a reference field, all discovered bulbs will be used. The reference field can be specified in any of the following formats on a per-event basis, i.e. you can chose to use one method for an event  and a different method for another.
 
-> **Currently, no validation is performed to ensure the serial numbers are valid
- or if any specified files exist.** <br>
-> Likewise, no validation of the provided filters is performed, so it's possible
-for a filter to return no results or unexpected results if misconfigured.
+> **No validation is performed to ensure the serial numbers are valid or if any specified files exist.** Likewise, no validation of the provided filters is performed, so it's possible for a filter to return no results or unexpected results if misconfigured.
 
 The available formats are:
 
@@ -264,17 +213,12 @@ reference: file:/config/bulbs.conf
 reference: match:group_name=bedroom
 ```
 
-The Photons Core documentation maintains a list [valid filters](https://delfick.github.io/photons-core/modules/photons_device_finder.html#finder-filters) that can be used with this option. Multiple filters can be
-combined using an ampersand, e.g. `match:group_name=bedroom&power=on` would match
- all bulbs in the group named `bedroom` that are currently powered on.
+The Photons documentation maintains a list [valid filters](https://photons.delfick.com/commandline/references.html#the-match-reference) that can be used with this option. Multiple filters can be combined using an ampersand, e.g. `match:group_name=bedroom&power=on` would match all bulbs in the group named `bedroom` that are currently powered on.
 
 ### Additional Photons configuration
 
-To provide [additional configuration options](https://photons.delfick.com/configuration/index.html)
-to Photons, simply add `lifx.yml` file to the `/config` directory.
+To provide [additional configuration options](https://photons.delfick.com/configuration/index.html), including `hardcoded_discovery` entries, place them in a file named `lifx.yml` file in the same directory as your `daydusk.yml` file.
 
 ## Acknowledgements
 
-* [delfick](https://github.com/delfick) for [Photons](https://photons.delfick.com)
-upon which my code depends and for providing additional pointers on using
-Photons for configuration validation.
+* [delfick](https://github.com/delfick) for [Photons](https://photons.delfick.com) upon which my code depends and for providing additional pointers on usingPhotons for configuration validation.

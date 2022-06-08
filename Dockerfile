@@ -1,4 +1,4 @@
-FROM python:3.10.4-slim
+FROM python:3.10.5-slim
 
 RUN set -x && apt-get update \
   && apt-get install -y curl tzdata gcc \
